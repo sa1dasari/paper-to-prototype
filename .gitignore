@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env
+out/
+examples/*/generated/*
+!examples/*/generated/.gitkeep
+eval/results.json
+.venv/
+
