@@ -25,22 +25,47 @@ def extract_text(pdf_path: Path) -> list[str]:
     return pages
 
 
-def extract_figures(pdf_path: Path, out_dir: Path) -> list[Path]:
-    """Save embedded raster images to ``out_dir`` and return their paths.
+_CAPTION_RE = re.compile(r"\b(Figure|Table)\s+\d+[:.\s]", re.IGNORECASE)
 
-    Best-effort: pdfplumber/PIL image extraction can fail silently for vector
-    figures; those are skipped.
+
+def extract_figures(pdf_path: Path, out_dir: Path,
+                    page_fallback: bool = True,
+                    resolution: int = 120) -> list[Path]:
+    """Save figure-like images from a PDF to ``out_dir``.
+
+    Strategy:
+    1. Crop every embedded raster image (XObject) — works for scanned papers.
+    2. If no raster images on a page **and** ``page_fallback`` is true and the
+       page text contains a "Figure N" or "Table N" caption, render the whole
+       page as PNG. This catches arXiv-style PDFs where figures are vector
+       graphics (e.g. word2vec, LoRA).
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     saved: list[Path] = []
     with pdfplumber.open(str(pdf_path)) as pdf:
         for pi, page in enumerate(pdf.pages):
+            page_no = pi + 1
+            page_had_raster = False
             for ii, img in enumerate(page.images):
                 try:
                     bbox = (img["x0"], img["top"], img["x1"], img["bottom"])
-                    cropped = page.crop(bbox).to_image(resolution=120)
-                    fp = out_dir / f"page{pi + 1:02d}_fig{ii + 1:02d}.png"
+                    cropped = page.crop(bbox).to_image(resolution=resolution)
+                    fp = out_dir / f"page{page_no:02d}_img{ii + 1:02d}.png"
                     cropped.save(str(fp), format="PNG")
+                    saved.append(fp)
+                    page_had_raster = True
+                except Exception:
+                    continue
+            if page_had_raster or not page_fallback:
+                continue
+            try:
+                text = page.extract_text() or ""
+            except Exception:
+                text = ""
+            if _CAPTION_RE.search(text):
+                try:
+                    fp = out_dir / f"page{page_no:02d}_full.png"
+                    page.to_image(resolution=resolution).save(str(fp), format="PNG")
                     saved.append(fp)
                 except Exception:
                     continue

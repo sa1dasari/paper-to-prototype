@@ -1,0 +1,26 @@
+{
+  "title": "Efficient Estimation of Word Representations in Vector Space (Word2Vec: CBOW & Skip-gram)",
+  "inputs": "A large text corpus (sequence of words/tokens)",
+  "outputs": "Dense continuous vector representations (embeddings) for each word in the vocabulary",
+  "hyperparameters": {
+    "embedding_dim": 50,
+    "window_size": 5,
+    "learning_rate": 0.025,
+    "num_epochs": 1,
+    "negative_samples": 5,
+    "min_count": 5,
+    "subsampling_threshold": 0.001
+  },
+  "pseudocode": "1. Preprocess corpus: tokenize, build vocabulary (words appearing >= min_count)\n2. Initialize word embedding matrix W (vocab_size x embedding_dim) randomly\n3. For each epoch:\n4.   For each word w_t in corpus:\n5.     Context = words within window_size of w_t\n6.     **CBOW variant:**\n7.       Input = average of context word vectors\n8.       Predict center word w_t using hierarchical softmax or negative sampling\n9.       Update embeddings via backprop (SGD)\n10.    **Skip-gram variant:**\n11.      For each context word w_c in Context:\n12.        Input = center word w_t embedding\n13.        Predict context word w_c using hierarchical softmax or negative sampling\n14.        Update embeddings via backprop (SGD)\n15.    Decay learning_rate linearly toward zero\n16. Return learned embedding matrix W",
+  "key_equations": [
+    "CBOW objective: maximize log p(w_t | w_{t-c}, ..., w_{t-1}, w_{t+1}, ..., w_{t+c})",
+    "Skip-gram objective: maximize sum_{-c <= j <= c, j != 0} log p(w_{t+j} | w_t)",
+    "Hierarchical softmax: p(w|context) = product over path in binary tree of sigmoid decisions",
+    "Negative sampling: log \u03c3(v_{w_O}^T v_{w_I}) + sum_{i=1}^{k} E_{w_i ~ P_n(w)} [log \u03c3(-v_{w_i}^T v_{w_I})]",
+    "Vector analogy: vec(king) - vec(man) + vec(woman) \u2248 vec(queen)"
+  ],
+  "evaluation_dataset": "Google News corpus (6B tokens, 1M vocab), Semantic-Syntactic Word Relationship test set (8869 semantic + 10675 syntactic analogy questions), Microsoft Sentence Completion Challenge",
+  "toy_dataset_suggestion": "text8 corpus (~17MB, 100MB unzipped, first 100M characters of Wikipedia) or a small subset (first 10M chars) for very quick runs. Alternatively, a simple synthetic corpus or IMDB review subset (a few thousand sentences).",
+  "key_figure_description": "A table or bar chart showing accuracy (%) on the Semantic-Syntactic Word Relationship test set for different model architectures (RNNLM, NNLM, CBOW, Skip-gram). X-axis: model architecture; Y-axis: accuracy percentage. CBOW and Skip-gram should outperform older RNNLM/NNLM baselines, with Skip-gram achieving higher semantic accuracy and CBOW higher syntactic accuracy.",
+  "notes": "For a toy implementation: (1) Use negative sampling instead of hierarchical softmax (simpler to code). (2) Train on a small corpus (text8 subset or synthetic data). (3) Evaluate on a small analogy test set (e.g., 100-500 questions). (4) Skip DistBelief parallelism, run single-threaded or simple multiprocessing. (5) Use dimension 50-100 instead of 300-1000. (6) Focus on reproducing the trend that Skip-gram/CBOW significantly outperform older methods on word analogy tasks, rather than matching exact accuracy numbers. (7) Implement either CBOW or Skip-gram (not both) to save time; Skip-gram is slightly more popular."
+}

@@ -15,7 +15,17 @@ try:
 except Exception:
     pass
 
-from .tools import pdf_reader, extractor, codegen, executor
+# Support BOTH `python -m src` (package import) and `python src/agent.py`
+# (direct script execution from IntelliJ's green "Run" button).
+if __package__ in (None, ""):
+    # Running as a top-level script: add repo root to sys.path and use
+    # absolute imports.
+    _REPO_ROOT = Path(__file__).resolve().parent.parent
+    if str(_REPO_ROOT) not in sys.path:
+        sys.path.insert(0, str(_REPO_ROOT))
+    from src.tools import pdf_reader, extractor, codegen, executor  # type: ignore
+else:
+    from .tools import pdf_reader, extractor, codegen, executor
 
 
 DEFAULT_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-5")
