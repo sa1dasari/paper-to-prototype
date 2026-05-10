@@ -72,17 +72,23 @@ Repo layout for inputs/outputs:
 
 ```
 input/
-└── word2vec/paper.pdf      # you put PDFs here (one folder per paper)
+└── word2vec/paper.pdf                 # you put PDFs here (one folder per paper)
 
 output/
-└── word2vec/               # the agent writes here
-    ├── spec.json           # structured AlgorithmSpec
-    ├── prototype.ipynb     # the generated, executed notebook
-    ├── REPRODUCTION.md     # claim + result + gap analysis
-    ├── figures/            # PNGs captured from the executed notebook
-    ├── paper_figures/      # raster/page images cropped from the source PDF
-    └── agent_log.jsonl     # one line per stage: extract, codegen, execute, fix
+└── word2vec/
+    ├── latest.txt                     # name of the most recent run subfolder
+    ├── 2026-05-10_18-01-49/           # one timestamped folder per run
+    │   ├── spec.json                  # structured AlgorithmSpec
+    │   ├── prototype.ipynb            # the generated, executed notebook
+    │   ├── REPRODUCTION.md            # claim + result + gap analysis
+    │   ├── figures/                   # PNGs captured from the executed notebook
+    │   ├── paper_figures/             # raster/page images cropped from the source PDF
+    │   └── agent_log.jsonl            # one line per stage: extract, codegen, execute, fix
+    └── 2026-05-10_19-22-03/           # next run; previous one is preserved
+        └── ...
 ```
+
+Each invocation writes to a fresh timestamped subfolder so re-runs don't clobber prior results. Pass `--overwrite` to write directly into `--output-dir` instead (the old behavior). The sibling `latest.txt` always names the newest run.
 
 CLI flags:
 
@@ -94,6 +100,7 @@ pdf_path                positional, required
 --model NAME            default: $ANTHROPIC_MODEL or claude-sonnet-4-5
 --timeout SECONDS       per-notebook execution timeout, default 300
 --no-execute            generate spec + notebook only (debug); skip the agent loop
+--overwrite             write into --output-dir directly (no timestamped subfolder)
 ```
 
 ---

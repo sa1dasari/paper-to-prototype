@@ -1,0 +1,24 @@
+{
+  "title": "Efficient Estimation of Word Representations in Vector Space (Word2Vec: CBOW and Skip-gram)",
+  "inputs": "A text corpus (sequence of words/tokens)",
+  "outputs": "Dense vector representations (embeddings) for each word in the vocabulary",
+  "hyperparameters": {
+    "embedding_dim": 50,
+    "window_size": 5,
+    "learning_rate": 0.025,
+    "num_epochs": 1,
+    "min_count": 5,
+    "negative_samples": 5
+  },
+  "pseudocode": "1. Preprocess corpus: tokenize, build vocabulary (words appearing \u2265 min_count)\n2. Initialize word embedding matrix W (vocab_size \u00d7 embedding_dim) randomly\n3. For each epoch:\n    4. For each word w_t in corpus:\n        5. Extract context window: w_{t-C}...w_{t-1}, w_{t+1}...w_{t+C}\n        6. CBOW variant:\n            7. Compute context vector: mean of embeddings of context words\n            8. Predict center word w_t using softmax (or hierarchical softmax)\n            9. Update embeddings via backprop to maximize log P(w_t | context)\n        10. Skip-gram variant:\n            11. For each context word w_c in window:\n                12. Use embedding of w_t to predict w_c\n                13. Update embeddings via backprop to maximize log P(w_c | w_t)\n        14. Use negative sampling: sample k negative words, update to distinguish true context from noise\n    15. Decay learning rate linearly\n16. Return trained embedding matrix W",
+  "key_equations": [
+    "CBOW objective: maximize log P(w_t | w_{t-C}, ..., w_{t+C}) = log softmax(W \u00b7 mean(context_embeddings))",
+    "Skip-gram objective: maximize \u03a3_{c in context} log P(w_c | w_t) = \u03a3 log softmax(W \u00b7 embedding(w_t))",
+    "Negative sampling: log \u03c3(v'_{w_O}^T v_{w_I}) + \u03a3_{i=1}^k E_{w_i ~ P_n(w)} [log \u03c3(-v'_{w_i}^T v_{w_I})]",
+    "Hierarchical softmax: replaces full softmax with binary tree, reducing complexity from O(V) to O(log V)"
+  ],
+  "evaluation_dataset": "Google News corpus (6B tokens), restricted vocabulary test sets for semantic-syntactic word relationships (e.g., 'king - man + woman \u2248 queen'), Microsoft Sentence Completion Challenge",
+  "toy_dataset_suggestion": "text8 dataset (first 100MB of cleaned Wikipedia text, ~17M tokens) or a small subset (e.g., first 1M tokens). Alternatively, use a simple synthetic corpus or the 'Brown' corpus from NLTK (~1M tokens).",
+  "key_figure_description": "A table or bar chart showing accuracy (%) on the semantic-syntactic word relationship test set (analogies like 'Paris:France :: Rome:Italy') for different architectures (RNNLM, NNLM, CBOW, Skip-gram) and varying embedding dimensions (50, 100, 300). X-axis: model architecture or embedding dimension; Y-axis: accuracy (0-100%). CBOW and Skip-gram should show higher syntactic/semantic accuracy than baseline NNLMs.",
+  "notes": "For a toy implementation: (1) Use a small corpus (<10M tokens) and vocabulary (<10k words). (2) Implement either CBOW or Skip-gram, not both. (3) Use negative sampling (simpler than hierarchical softmax). (4) Skip DistBelief parallelization. (5) Train for 1 epoch only. (6) Evaluate on a small analogy test set (~100 questions) or nearest-neighbor retrieval. (7) Focus on demonstrating that learned embeddings capture semantic similarity (e.g., 'king' close to 'queen', 'Paris' close to 'France')."
+}

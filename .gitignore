@@ -7,10 +7,3 @@ __pycache__/
 # Eval cache
 eval/results.json
 
-# Inside output/<name>/ we KEEP the showcase artifacts
-# (prototype.ipynb, REPRODUCTION.md, spec.json, figures/, paper_figures/)
-# but ignore noisy/large run scratch:
-output/*/run.log
-output/*/agent_log.jsonl
-output/*/data/
-
