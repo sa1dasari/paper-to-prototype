@@ -2,9 +2,18 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .env
-out/
-examples/*/generated/*
-!examples/*/generated/.gitkeep
-eval/results.json
 .venv/
+
+# Per-run scratch output (when using --output-dir ./out/...)
+out/
+
+# Eval cache
+eval/results.json
+
+# Inside examples/<name>/generated/ we KEEP the showcase artifacts
+# (prototype.ipynb, REPRODUCTION.md, spec.json, figures/, paper_figures/)
+# but ignore noisy/large run scratch:
+examples/*/generated/run.log
+examples/*/generated/agent_log.jsonl
+examples/*/generated/data/
 
