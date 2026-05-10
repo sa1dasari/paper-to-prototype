@@ -26,7 +26,8 @@ def _log(msg: str) -> None:
 
 def evaluate(input_dir: Path, output_dir: Path,
              max_iters: int = 5, timeout: int = 300,
-             model: str | None = None) -> dict:
+             model: str | None = None,
+             overwrite: bool = False) -> dict:
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -57,6 +58,7 @@ def evaluate(input_dir: Path, output_dir: Path,
             agent = PaperAgent(**agent_kwargs)
             summary = agent.run(
                 pdf_path=pdf, focus=None, output_dir=out_sub,
+                overwrite=overwrite,
             )
             entry.update(
                 status=summary.get("status"),
@@ -96,11 +98,15 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--model", type=str, default=None)
     p.add_argument("--out", type=Path, default=ROOT / "eval" / "results.json",
                    help="Path for the aggregated JSON summary.")
+    p.add_argument("--overwrite", action="store_true",
+                   help="Overwrite output/<name>/ instead of writing a unique "
+                        "timestamped subfolder per run.")
     args = p.parse_args(argv)
 
     summary = evaluate(
         args.input_dir, args.output_dir,
         args.max_iters, args.timeout, args.model,
+        overwrite=args.overwrite,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(summary, indent=2), encoding="utf-8")

@@ -67,10 +67,27 @@ class PaperAgent:
               file=sys.stderr, flush=True)
 
     def run(self, pdf_path: Path, focus: Optional[str], output_dir: Path,
-            no_execute: bool = False) -> dict:
+            no_execute: bool = False, overwrite: bool = False) -> dict:
         pdf_path = Path(pdf_path)
         output_dir = Path(output_dir)
+        # Default: write into a unique timestamped subfolder so successive runs
+        # don't clobber each other. ``overwrite=True`` keeps the legacy behavior
+        # of writing directly into ``output_dir``.
+        if not overwrite:
+            run_id = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            output_dir = output_dir / run_id
         output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Maintain a "latest" pointer next to the timestamped runs so tooling
+        # (and humans) can find the most recent artifacts without listing dirs.
+        if not overwrite:
+            try:
+                (output_dir.parent / "latest.txt").write_text(
+                    output_dir.name, encoding="utf-8"
+                )
+            except OSError:
+                pass
+
         log_path = output_dir / "agent_log.jsonl"
         self._t0 = time.monotonic()
         print(f"[agent] starting  pdf={pdf_path}  output_dir={output_dir}  model={self.model}",
@@ -236,6 +253,9 @@ def main(argv: Optional[list[str]] = None) -> int:
                    help="Per-notebook execution timeout in seconds.")
     p.add_argument("--no-execute", action="store_true",
                    help="Generate spec + notebook but skip the execution loop.")
+    p.add_argument("--overwrite", action="store_true",
+                   help="Write directly into --output-dir instead of a unique "
+                        "timestamped subfolder (default: timestamped).")
     args = p.parse_args(argv)
 
     if not args.pdf_path.exists():
@@ -250,6 +270,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         focus=args.focus,
         output_dir=output_dir,
         no_execute=args.no_execute,
+        overwrite=args.overwrite,
     )
     print(json.dumps({k: v for k, v in summary.items() if k != "spec"}, indent=2, default=str))
     return 0 if summary.get("status") in ("ok", "generated") else 1

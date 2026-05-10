@@ -1,0 +1,10 @@
+{"ts": "2026-05-10T18:58:41.931644Z", "stage": "pdf_read", "pdf": "input\\word2vec\\paper.pdf"}
+{"ts": "2026-05-10T18:58:44.506969Z", "stage": "extract_spec", "focus": null}
+{"ts": "2026-05-10T18:59:08.579166Z", "stage": "codegen_initial"}
+{"ts": "2026-05-10T18:59:59.333363Z", "stage": "execute", "iter": 1}
+{"ts": "2026-05-10T19:00:08.611274Z", "stage": "execute_error", "iter": 1, "error_name": "IndexError", "error_value": "index 24 is out of bounds for axis 0 with size 24"}
+{"ts": "2026-05-10T19:00:44.109008Z", "stage": "execute", "iter": 2}
+{"ts": "2026-05-10T19:00:51.884549Z", "stage": "execute_ok", "iter": 2}
+{"ts": "2026-05-10T19:00:51.887369Z", "stage": "extract_figures"}
+{"ts": "2026-05-10T19:00:51.961055Z", "stage": "write_report", "figures": 1}
+{"ts": "2026-05-10T19:00:51.962249Z", "stage": "done", "status": "ok", "iterations": 2}

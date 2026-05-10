@@ -1,0 +1,26 @@
+{
+  "title": "Efficient Estimation of Word Representations in Vector Space (Word2Vec)",
+  "inputs": "A large text corpus (sequence of words/tokens) and a vocabulary V",
+  "outputs": "Dense continuous vector representations (embeddings) for each word in the vocabulary, typically 50-300 dimensions",
+  "hyperparameters": {
+    "vector_dimensionality": 50,
+    "window_size": 5,
+    "learning_rate": 0.025,
+    "num_epochs": 1,
+    "negative_samples": 5,
+    "min_count": 5,
+    "subsampling_threshold": 0.001
+  },
+  "pseudocode": "1. Initialize word vectors randomly for all words in vocabulary V\n2. For each training epoch:\n3.   For each word w_t in corpus:\n4.     // CBOW variant:\n5.     context = [w_{t-c}, ..., w_{t-1}, w_{t+1}, ..., w_{t+c}]\n6.     context_vector = average(vectors(context))\n7.     Predict w_t from context_vector using hierarchical softmax or negative sampling\n8.     Update context_vector and w_t vector via backpropagation\n9.     // Skip-gram variant (alternative):\n10.    For each context word w_c in window around w_t:\n11.      Predict w_c from w_t using hierarchical softmax or negative sampling\n12.      Update w_t and w_c vectors via backpropagation\n13.   Decrease learning_rate linearly toward zero\n14. Return trained word vectors",
+  "key_equations": [
+    "CBOW objective: maximize log p(w_t | w_{t-c}, ..., w_{t-1}, w_{t+1}, ..., w_{t+c})",
+    "Skip-gram objective: maximize sum_{-c <= j <= c, j != 0} log p(w_{t+j} | w_t)",
+    "Hierarchical softmax: p(w|context) = product over path in Huffman tree of sigmoid(v_n \u00b7 h)",
+    "Negative sampling: log \u03c3(v_{w_O}' \u00b7 h) + sum_{i=1}^k E_{w_i ~ P_n(w)} [log \u03c3(-v_{w_i}' \u00b7 h)]",
+    "Training complexity: O = E \u00d7 T \u00d7 Q, where Q = N\u00d7D + D\u00d7log_2(V) for CBOW"
+  ],
+  "evaluation_dataset": "Google News corpus (6 billion tokens, 1 million vocabulary), Semantic-Syntactic Word Relationship test set (8869 semantic + 10675 syntactic analogy questions)",
+  "toy_dataset_suggestion": "text8 dataset (first 100MB of cleaned Wikipedia text, ~17M tokens) or a small subset of Wikipedia/news articles (1-10MB), with vocabulary restricted to most frequent 10k-30k words",
+  "key_figure_description": "A table or bar chart showing accuracy on word analogy tasks (semantic and syntactic separately) comparing CBOW and Skip-gram architectures with varying vector dimensions (50, 100, 300) and training data sizes. X-axis: model configuration (architecture + dimension), Y-axis: accuracy percentage on analogy task. Should show Skip-gram excelling at semantic analogies while CBOW is competitive on syntactic ones.",
+  "notes": "For a toy implementation: (1) Use negative sampling instead of hierarchical softmax for simplicity, (2) Skip distributed training and use single-threaded CPU implementation, (3) Use smaller vocabulary (10k-30k words) and vector dimensions (50-100), (4) Train for 1-3 epochs maximum, (5) Focus on reproducing qualitative behavior (vector('king') - vector('man') + vector('woman') \u2248 vector('queen')) rather than exact accuracy numbers, (6) The paper presents two architectures (CBOW and Skip-gram); implement one initially (Skip-gram is simpler conceptually), (7) Use pre-tokenized corpus to avoid complex text preprocessing, (8) Can evaluate on a subset of the analogy test set (100-500 questions)"
+}
