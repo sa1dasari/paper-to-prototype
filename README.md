@@ -90,6 +90,8 @@ output/
 
 Each invocation writes to a fresh timestamped subfolder so re-runs don't clobber prior results. Pass `--overwrite` to write directly into `--output-dir` instead (the old behavior). The sibling `latest.txt` always names the newest run.
 
+> Every artifact under `output/<name>/<timestamp>/` (notebook, REPRODUCTION.md, spec.json, figures, paper_figures, `agent_log.jsonl`) is **committed to git** — each historical run is fully reproducible from the repo. Only `__pycache__/`, the venv, `.env`, and `eval/results.json` are ignored.
+
 CLI flags:
 
 ```
@@ -102,6 +104,22 @@ pdf_path                positional, required
 --no-execute            generate spec + notebook only (debug); skip the agent loop
 --overwrite             write into --output-dir directly (no timestamped subfolder)
 ```
+
+### Live progress logs
+
+Both `agent.py` and `eval/success_rate.py` print per-stage progress to stderr in real time. A successful word2vec run looks like:
+
+```
+[agent] starting  pdf=input\word2vec\paper.pdf  output_dir=output\word2vec\2026-05-10_18-01-49  model=claude-sonnet-4-5
+[agent] [+  0.0s] pdf_read       pdf=input\word2vec\paper.pdf
+[agent] [+  3.1s] extract_spec   focus=None
+[agent] [+ 28.4s] codegen_initial
+[agent] [+ 91.7s] execute        iter=1
+[agent] [+106.5s] execute_ok     iter=1
+[agent] [+106.7s] done           status=ok  iterations=1
+```
+
+Long pauses between lines are normal — Claude calls take 20–60s and notebook execution can take a minute or two. The same stages are also persisted as JSON in `agent_log.jsonl` for later analysis.
 
 ---
 
@@ -117,9 +135,11 @@ Add more by creating `input/<your-name>/paper.pdf` — the agent will write to `
 
 ```powershell
 python eval\success_rate.py
+# or override defaults:
+python eval\success_rate.py --max-iters 3 --timeout 600 --overwrite
 ```
 
-Reads from `input/`, writes per-paper artifacts to `output/<name>/`, and aggregates a summary to `eval/results.json`.
+Reads from `input/`, writes per-paper artifacts to `output/<name>/<timestamp>/` (or `output/<name>/` directly with `--overwrite`), and aggregates a summary to `eval/results.json`. The eval harness emits its own `[eval] ...` lines around each paper's `[agent] ...` log so you can see which paper is currently running and how long each one took.
 
 ---
 
