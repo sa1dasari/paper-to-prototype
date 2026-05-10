@@ -4,16 +4,13 @@ __pycache__/
 .env
 .venv/
 
-# Per-run scratch output (when using --output-dir ./out/...)
-out/
-
 # Eval cache
 eval/results.json
 
-# Inside examples/<name>/generated/ we KEEP the showcase artifacts
+# Inside output/<name>/ we KEEP the showcase artifacts
 # (prototype.ipynb, REPRODUCTION.md, spec.json, figures/, paper_figures/)
 # but ignore noisy/large run scratch:
-examples/*/generated/run.log
-examples/*/generated/agent_log.jsonl
-examples/*/generated/data/
+output/*/run.log
+output/*/agent_log.jsonl
+output/*/data/
 

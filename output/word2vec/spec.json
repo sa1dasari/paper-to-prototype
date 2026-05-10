@@ -1,0 +1,26 @@
+{
+  "title": "Efficient Estimation of Word Representations in Vector Space (Word2Vec)",
+  "inputs": "A large text corpus (tokenized into words), vocabulary size V, word sequences",
+  "outputs": "D-dimensional continuous vector representations (embeddings) for each word in vocabulary",
+  "hyperparameters": {
+    "embedding_dim": 50,
+    "window_size": 5,
+    "learning_rate": 0.025,
+    "epochs": 3,
+    "min_count": 5,
+    "negative_samples": 5,
+    "subsampling_threshold": 0.001
+  },
+  "pseudocode": "1. Initialize word vectors W \u2208 R^(V\u00d7D) randomly\n2. Initialize context vectors C \u2208 R^(V\u00d7D) randomly\n3. For each epoch:\n4.   For each word w_t in corpus:\n5.     Get context window [w_{t-c}, ..., w_{t-1}, w_{t+1}, ..., w_{t+c}]\n6.     SKIP-GRAM:\n7.       For each context word w_c in window:\n8.         Sample k negative words from noise distribution\n9.         Compute \u03c3(w_t^T \u00b7 w_c) for positive pair\n10.        Compute \u03c3(-w_t^T \u00b7 w_neg) for each negative sample\n11.        Gradient ascent on log-likelihood objective\n12.     OR CBOW:\n13.       Average context vectors: h = (1/2c)\u03a3 w_i\n14.       Sample k negative words\n15.       Predict center word w_t from context h\n16.       Gradient ascent on log-likelihood objective\n17.   Decay learning rate linearly\n18. Return word vectors W",
+  "key_equations": [
+    "Skip-gram objective: maximize \u03a3_t \u03a3_{-c\u2264j\u2264c,j\u22600} log p(w_{t+j} | w_t)",
+    "p(w_O | w_I) = exp(v'_{w_O}^T v_{w_I}) / \u03a3_{w=1}^V exp(v'_w^T v_{w_I})",
+    "Negative sampling: log \u03c3(v'_{w_O}^T v_{w_I}) + \u03a3_{i=1}^k E_{w_i~P_n(w)} [log \u03c3(-v'_{w_i}^T v_{w_I})]",
+    "CBOW: maximize log p(w_t | w_{t-c},...,w_{t+c}) where context is averaged",
+    "Hierarchical softmax complexity: O(D \u00d7 log_2(V)) vs full softmax O(D \u00d7 V)"
+  ],
+  "evaluation_dataset": "Google News corpus (6B tokens, 1M vocabulary), Semantic-Syntactic Word Relationship test set (8869 semantic + 10675 syntactic questions), Microsoft Sentence Completion Challenge",
+  "toy_dataset_suggestion": "text8 dataset (first 100MB of cleaned Wikipedia text, ~17M tokens) or a small synthetic corpus of 1-2M tokens with known semantic relationships (e.g., country-capital pairs, verb conjugations). Alternative: Penn Treebank or first 10k sentences of WikiText-2.",
+  "key_figure_description": "A table or bar chart showing accuracy (%) on the Semantic-Syntactic Word Relationship test (or a subset) for different model architectures (NNLM, RNNLM, CBOW, Skip-gram) and different embedding dimensions (50, 100, 300). X-axis: model type or embedding dimension; Y-axis: accuracy percentage on semantic questions, syntactic questions, and total. Should show Skip-gram achieving highest semantic accuracy (~55%) and CBOW achieving highest syntactic accuracy (~64%).",
+  "notes": "For toy implementation: (1) Use Skip-gram with negative sampling (simpler than hierarchical softmax). (2) Skip hierarchical softmax and use simple negative sampling with k=5-15. (3) Use smaller vocabulary (30k most frequent words). (4) Train for 1-3 epochs only. (5) Evaluate on a small subset of analogy questions (e.g., 100-500 questions). (6) Skip distributed training; single-threaded CPU implementation is sufficient. (7) Main goal: demonstrate that vector('king') - vector('man') + vector('woman') \u2248 vector('queen') and similar analogies work after training. (8) Subsampling frequent words (like 'the', 'a') improves quality but can be skipped for minimal version."
+}

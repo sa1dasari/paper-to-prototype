@@ -5,7 +5,8 @@ import argparse
 import json
 import os
 import sys
-from datetime import datetime
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -48,11 +49,22 @@ class PaperAgent:
         self.model = model
         self.max_iters = max_iters
         self.timeout = timeout
+        self._t0: Optional[float] = None
 
     def _log(self, log_path: Path, event: dict) -> None:
-        event = {"ts": datetime.utcnow().isoformat() + "Z", **event}
+        ts = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        event = {"ts": ts, **event}
         with log_path.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(event, default=str) + "\n")
+        # Also print a human-friendly line to stderr so the user sees live progress.
+        stage = event.get("stage", "?")
+        extras = {k: v for k, v in event.items() if k not in ("ts", "stage")}
+        extra_str = " ".join(f"{k}={v}" for k, v in extras.items())
+        elapsed = ""
+        if self._t0 is not None:
+            elapsed = f" [+{time.monotonic() - self._t0:6.1f}s]"
+        print(f"[agent]{elapsed} {stage}" + (f"  {extra_str}" if extra_str else ""),
+              file=sys.stderr, flush=True)
 
     def run(self, pdf_path: Path, focus: Optional[str], output_dir: Path,
             no_execute: bool = False) -> dict:
@@ -60,6 +72,9 @@ class PaperAgent:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         log_path = output_dir / "agent_log.jsonl"
+        self._t0 = time.monotonic()
+        print(f"[agent] starting  pdf={pdf_path}  output_dir={output_dir}  model={self.model}",
+              file=sys.stderr, flush=True)
 
         # 1) PDF -> text (+ figures best-effort)
         self._log(log_path, {"stage": "pdf_read", "pdf": str(pdf_path)})
@@ -115,7 +130,9 @@ class PaperAgent:
                 break
 
         # 5) Extract figures + write reproduction report
+        self._log(log_path, {"stage": "extract_figures"})
         figs = executor.extract_figure_outputs(nb_path, output_dir / "figures")
+        self._log(log_path, {"stage": "write_report", "figures": len(figs)})
         write_reproduction_md(
             spec=spec,
             exec_result=result,
@@ -124,9 +141,11 @@ class PaperAgent:
             model=self.model,
             out_path=output_dir / "REPRODUCTION.md",
         )
+        final_status = "ok" if (result and result.success) else "failed"
+        self._log(log_path, {"stage": "done", "status": final_status, "iterations": iteration})
 
         return {
-            "status": "ok" if (result and result.success) else "failed",
+            "status": final_status,
             "iterations": iteration,
             "notebook": str(nb_path),
             "figures": [str(p) for p in figs],
@@ -208,7 +227,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     p.add_argument("--focus", type=str, default=None,
                    help="Optional section heading or keyword to focus on (e.g., 'Section 3').")
     p.add_argument("--output-dir", type=Path, default=None,
-                   help="Output directory (default: ./out/<pdf-stem>/).")
+                   help="Output directory (default: ./output/<pdf-stem>/).")
     p.add_argument("--max-iters", type=int, default=5,
                    help="Max generate→run→fix iterations (default: 5).")
     p.add_argument("--model", type=str, default=DEFAULT_MODEL,
@@ -223,7 +242,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         print(f"error: PDF not found: {args.pdf_path}", file=sys.stderr)
         return 2
 
-    output_dir = args.output_dir or (Path("out") / args.pdf_path.stem)
+    output_dir = args.output_dir or (Path("output") / args.pdf_path.stem)
 
     agent = PaperAgent(model=args.model, max_iters=args.max_iters, timeout=args.timeout)
     summary = agent.run(
