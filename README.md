@@ -56,26 +56,32 @@ $env:ANTHROPIC_API_KEY = "sk-ant-..."
 
 ## Quickstart
 
+Drop a paper PDF into `input/<name>/paper.pdf` and run:
+
 ```powershell
-python -m src path\to\paper.pdf --output-dir out\my_paper
+python -m src input\word2vec\paper.pdf --output-dir output\word2vec
 ```
 
 With a focus hint and a tighter loop:
 
 ```powershell
-python -m src examples\dropout\paper.pdf --focus "Section 4" --max-iters 3
+python -m src input\word2vec\paper.pdf --output-dir output\word2vec --focus "Section 4" --max-iters 3
 ```
 
-Output dir contents:
+Repo layout for inputs/outputs:
 
 ```
-out/my_paper/
-├── spec.json            # structured AlgorithmSpec
-├── prototype.ipynb      # the generated, executed notebook
-├── REPRODUCTION.md      # claim + result + gap analysis
-├── figures/             # PNGs captured from the executed notebook
-├── paper_figures/       # raster figures cropped from the source PDF
-└── agent_log.jsonl      # one line per stage: extract, codegen, execute, fix
+input/
+└── word2vec/paper.pdf      # you put PDFs here (one folder per paper)
+
+output/
+└── word2vec/               # the agent writes here
+    ├── spec.json           # structured AlgorithmSpec
+    ├── prototype.ipynb     # the generated, executed notebook
+    ├── REPRODUCTION.md     # claim + result + gap analysis
+    ├── figures/            # PNGs captured from the executed notebook
+    ├── paper_figures/      # raster/page images cropped from the source PDF
+    └── agent_log.jsonl     # one line per stage: extract, codegen, execute, fix
 ```
 
 CLI flags:
@@ -83,7 +89,7 @@ CLI flags:
 ```
 pdf_path                positional, required
 --focus TEXT            section heading or keyword to bias the spec extraction
---output-dir DIR        default: ./out/<pdf-stem>/
+--output-dir DIR        default: ./output/<pdf-stem>/
 --max-iters N           default: 5
 --model NAME            default: $ANTHROPIC_MODEL or claude-sonnet-4-5
 --timeout SECONDS       per-notebook execution timeout, default 300
@@ -92,23 +98,21 @@ pdf_path                positional, required
 
 ---
 
-## Examples
+## Examples / batch eval
 
-Drop a real PDF as `examples/<name>/paper.pdf` and run the agent. The repo ships with stub folders:
+Drop a `paper.pdf` into any `input/<name>/` folder and the eval harness will process every folder it finds.
 
-| Example | Paper | Toy dataset (suggested) |
-|--------|-------|-------------------------|
-| `examples/word2vec/` | Mikolov et al., *Efficient Estimation of Word Representations* | tiny tokenized text snippet |
-| `examples/lora/` | Hu et al., *LoRA: Low-Rank Adaptation* | tiny linear regression / small MLP |
-| `examples/dropout/` | Srivastava et al., *Dropout* | MNIST subset (≤ 5k samples) |
+| Input folder | Paper | Toy dataset (suggested) | Output folder |
+|---|---|---|---|
+| `input/word2vec/` | Mikolov et al., *Efficient Estimation of Word Representations* | tiny tokenized text snippet | `output/word2vec/` |
 
-Run the full eval over every example with a `paper.pdf`:
+Add more by creating `input/<your-name>/paper.pdf` — the agent will write to `output/<your-name>/` automatically.
 
 ```powershell
 python eval\success_rate.py
 ```
 
-This writes `eval/results.json` with per-paper status and an overall success rate.
+Reads from `input/`, writes per-paper artifacts to `output/<name>/`, and aggregates a summary to `eval/results.json`.
 
 ---
 
