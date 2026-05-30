@@ -35,25 +35,6 @@
 
 ---
 
-## Install
-
-```powershell
-git clone <this-repo>
-cd paper-to-prototype
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python -m ipykernel install --user --name python3
-```
-
-Set your Anthropic key (or copy `.env.example` → `.env`):
-
-```powershell
-$env:ANTHROPIC_API_KEY = "sk-ant-..."
-```
-
----
-
 ## Quickstart
 
 Drop a paper PDF into `input/<name>/paper.pdf` and run:
@@ -123,26 +104,6 @@ Long pauses between lines are normal — Claude calls take 20–60s and notebook
 
 ---
 
-## Examples / batch eval
-
-Drop a `paper.pdf` into any `input/<name>/` folder and the eval harness will process every folder it finds.
-
-| Input folder | Paper | Toy dataset (suggested) | Output folder |
-|---|---|---|---|
-| `input/word2vec/` | Mikolov et al., *Efficient Estimation of Word Representations* | tiny tokenized text snippet | `output/word2vec/` |
-
-Add more by creating `input/<your-name>/paper.pdf` — the agent will write to `output/<your-name>/` automatically.
-
-```powershell
-python eval\success_rate.py
-# or override defaults:
-python eval\success_rate.py --max-iters 3 --timeout 600 --overwrite
-```
-
-Reads from `input/`, writes per-paper artifacts to `output/<name>/<timestamp>/` (or `output/<name>/` directly with `--overwrite`), and aggregates a summary to `eval/results.json`. The eval harness emits its own `[eval] ...` lines around each paper's `[agent] ...` log so you can see which paper is currently running and how long each one took.
-
----
-
 ## Scope & non-goals
 
 - **In scope:** ≤ ~200 LOC implementations, single-laptop CPU, runtime budget ≈ 2 minutes per notebook, qualitative reproduction of the *trend* in one key figure.
@@ -154,7 +115,4 @@ Reads from `input/`, writes per-paper artifacts to `output/<name>/<timestamp>/` 
 - Heavy LaTeX math layouts can corrupt `pdfplumber` text extraction; try `--focus` to point at a cleaner section.
 - The fixer has a hard cap at 5 iterations. Pathological errors (missing native deps, kernel crashes) won't recover.
 
-## License
-
-MIT.
 
