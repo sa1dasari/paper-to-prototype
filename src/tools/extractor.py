@@ -9,6 +9,10 @@ from typing import Optional, TypedDict
 PROMPTS_DIR = Path(__file__).resolve().parent.parent / "prompts"
 MAX_PAPER_CHARS = 80_000
 
+# Set by extract_spec() after every Claude call so that agent.py can read
+# token usage via _maybe_count() without needing to touch the return value.
+_last_response = None
+
 
 class AlgorithmSpec(TypedDict, total=False):
     title: str
@@ -57,12 +61,14 @@ def extract_spec(paper: dict, client, focus: Optional[str] = None,
         paper_text=paper_text,
     )
 
+    global _last_response
     resp = client.messages.create(
         model=model,
         max_tokens=4096,
         system="You are a careful ML paper analyst. Output ONLY valid JSON.",
         messages=[{"role": "user", "content": user_msg}],
     )
+    _last_response = resp
     raw = "".join(getattr(b, "text", "") for b in resp.content)
     data = json.loads(_strip_code_fences(raw))
     return data  # type: ignore[return-value]
