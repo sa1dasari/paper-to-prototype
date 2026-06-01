@@ -1,0 +1,8 @@
+{"ts": "2026-06-01T00:32:45.994891Z", "stage": "pdf_read", "pdf": "input\\adwin\\paper.pdf"}
+{"ts": "2026-06-01T00:32:53.593730Z", "stage": "extract_spec", "focus": null}
+{"ts": "2026-06-01T00:33:19.035449Z", "stage": "codegen_initial"}
+{"ts": "2026-06-01T00:34:14.233689Z", "stage": "execute", "iter": 1}
+{"ts": "2026-06-01T00:34:32.592370Z", "stage": "execute_ok", "iter": 1}
+{"ts": "2026-06-01T00:34:32.592815Z", "stage": "extract_figures"}
+{"ts": "2026-06-01T00:34:32.634387Z", "stage": "write_report", "figures": 1}
+{"ts": "2026-06-01T00:34:32.635467Z", "stage": "done", "status": "ok", "iterations": 1, "success_iteration": 1, "wall_seconds": 106.6, "input_tokens": 25033, "output_tokens": 5082, "total_tokens": 30115}
