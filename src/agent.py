@@ -1,6 +1,23 @@
 """Agent orchestrator + CLI for paper-to-prototype."""
 from __future__ import annotations
 
+# On Windows the default Proactor event loop does not implement the "add_reader"
+# family required by Tornado/zmq; that produces a RuntimeWarning at runtime when
+# ipykernel / zmq is used. Set the selector policy early when available to
+# suppress that warning.
+import sys
+if sys.platform.startswith("win"):
+    try:
+        import asyncio
+
+        try:
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        except AttributeError:
+            # Older Python where WindowsSelectorEventLoopPolicy may not exist.
+            pass
+    except Exception:
+        pass
+
 import argparse
 import json
 import os
