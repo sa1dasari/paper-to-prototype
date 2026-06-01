@@ -1,0 +1,26 @@
+{
+  "title": "Dropout: A Simple Way to Prevent Neural Networks from Overfitting",
+  "inputs": "Neural network inputs (images, speech frames, text features, etc.) and corresponding labels",
+  "outputs": "Class predictions (classification) or reconstructed inputs (autoencoders)",
+  "hyperparameters": {
+    "p_hidden": 0.5,
+    "p_input": 0.8,
+    "learning_rate": 0.01,
+    "momentum": 0.95,
+    "max_norm_constraint": 4,
+    "n_hidden_units": 256,
+    "n_epochs": 50
+  },
+  "pseudocode": "1. Initialize network weights W and biases b\n2. For each training epoch:\n3.   For each mini-batch of training data:\n4.     For each layer l (input to output):\n5.       Sample binary mask r^(l) ~ Bernoulli(p) for layer l\n6.       Apply mask: y_thinned^(l) = r^(l) * y^(l)\n7.       Forward pass: z^(l+1) = W^(l+1) * y_thinned^(l) + b^(l+1)\n8.       Activation: y^(l+1) = f(z^(l+1))\n9.     Compute loss on final output\n10.    Backpropagate gradients through thinned network\n11.    Update weights with SGD + momentum\n12.    Apply max-norm constraint: if ||w_i||_2 > c, project w_i onto ball of radius c\n13. At test time:\n14.   For each layer l:\n15.     Scale weights: W_test^(l) = p * W^(l)\n16.   Forward pass through full network (no dropout)\n17.   Return predictions",
+  "key_equations": [
+    "z_i^(l+1) = w_i^(l+1) * y_thinned^(l) + b_i^(l+1)",
+    "y_i^(l+1) = f(z_i^(l+1))",
+    "y_thinned^(l) = r^(l) \u2217 y^(l), where r_j^(l) ~ Bernoulli(p)",
+    "W_test^(l) = p * W_train^(l) (weight scaling at test time)",
+    "||w||_2 \u2264 c (max-norm constraint during training)"
+  ],
+  "evaluation_dataset": "MNIST (handwritten digits), SVHN (street view house numbers), CIFAR-10/100 (natural images), TIMIT (speech), ImageNet (large-scale images)",
+  "toy_dataset_suggestion": "MNIST (28x28 grayscale handwritten digits, 60K train / 10K test). Can be trained on CPU in <2 minutes with a 2-layer network of 256-512 hidden units.",
+  "key_figure_description": "Plot test error (%) vs number of weight updates (or epochs) for two curves: (1) standard neural network without dropout, (2) same architecture with dropout (p=0.5 hidden, p=0.8 input). The dropout curve should show significantly lower final test error, demonstrating reduced overfitting. X-axis: training iterations or epochs. Y-axis: classification error percentage. The dropout curve should plateau at a lower error than the baseline.",
+  "notes": "For a toy implementation: (1) Use a simple 2-layer fully-connected network (784-256-10 for MNIST). (2) Skip max-norm regularization initially; it's helpful but not essential for seeing dropout's benefit. (3) Use basic SGD or SGD+momentum; no need for complex optimizers. (4) The key trend to reproduce: dropout reduces test error compared to no dropout. Absolute error rates may differ from paper due to simpler setup. (5) At test time, either scale weights by p OR during training scale activations by 1/p (equivalent). (6) For very small networks or datasets, dropout may not help much; use at least 256+ hidden units to see overfitting without dropout."
+}
