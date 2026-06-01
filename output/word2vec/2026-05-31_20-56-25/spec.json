@@ -1,0 +1,24 @@
+{
+  "title": "Efficient Estimation of Word Representations in Vector Space (Word2Vec)",
+  "inputs": "A large text corpus (sequence of words/tokens)",
+  "outputs": "Continuous vector representations (embeddings) for each word in the vocabulary",
+  "hyperparameters": {
+    "embedding_dim": 50,
+    "window_size": 5,
+    "negative_samples": 5,
+    "min_count": 5,
+    "learning_rate": 0.025,
+    "epochs": 1
+  },
+  "pseudocode": "1. Load and preprocess text corpus\n2. Build vocabulary (words occurring >= min_count times)\n3. Initialize word vectors randomly (vocab_size \u00d7 embedding_dim)\n4. For each epoch:\n5.   For each word w in corpus:\n6.     CBOW variant:\n7.       context = words within window_size of w\n8.       context_vec = mean(vectors[context])\n9.       Predict w from context_vec (hierarchical softmax or negative sampling)\n10.      Update context_vec and w vector via gradient descent\n11.    Skip-gram variant:\n12.      For each context word c within window_size of w:\n13.        Predict c from w vector (hierarchical softmax or negative sampling)\n14.        Update w and c vectors via gradient descent\n15.  Optionally decay learning_rate\n16. Return learned word vectors",
+  "key_equations": [
+    "CBOW objective: maximize log p(w_t | w_{t-c}, ..., w_{t-1}, w_{t+1}, ..., w_{t+c})",
+    "Skip-gram objective: maximize (1/T) \u03a3_t \u03a3_{-c\u2264j\u2264c, j\u22600} log p(w_{t+j} | w_t)",
+    "Negative sampling: log \u03c3(v'_{w_O}^T v_{w_I}) + \u03a3_{i=1}^k E_{w_i~P_n(w)} [log \u03c3(-v'_{w_i}^T v_{w_I})]",
+    "Hierarchical softmax: p(w|context) = \u03a0_{j=1}^{L(w)-1} \u03c3([n(w,j+1)=ch(n(w,j))] \u00b7 v'_{n(w,j)}^T v_context)"
+  ],
+  "evaluation_dataset": "Google News corpus (6B tokens), Semantic-Syntactic Word Relationship test set (8869 semantic + 10675 syntactic questions), Microsoft Sentence Completion Challenge",
+  "toy_dataset_suggestion": "text8 dataset (first 100M characters of Wikipedia, ~17M tokens) or a small subset (first 10M tokens). Alternatively, a synthetic text corpus or the Brown corpus from NLTK.",
+  "key_figure_description": "A table or bar chart showing accuracy on the Semantic-Syntactic Word Relationship test versus model architecture (RNNLM, NNLM, CBOW, Skip-gram) for fixed embedding dimension (e.g., 300) and training data size. X-axis: model type; Y-axis: accuracy percentage on semantic questions, syntactic questions, and overall. Expect Skip-gram to excel on semantic, CBOW on syntactic.",
+  "notes": "For a toy implementation: (1) Use negative sampling instead of hierarchical softmax for simplicity. (2) Train on a small corpus (text8 subset) for 1-3 epochs. (3) Evaluate on a subset of the word analogy questions (e.g., capital-common-countries, past-tense). (4) Focus on either CBOW or Skip-gram, not both. (5) Skip distributed training and parallelization. (6) The key trend to reproduce: Skip-gram captures semantic relationships (e.g., king-man+woman\u2248queen) measurably better than simpler baselines, observable even in toy setting with cosine similarity tests."
+}
