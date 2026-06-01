@@ -1,0 +1,8 @@
+{"ts": "2026-06-01T00:37:52.830097Z", "stage": "pdf_read", "pdf": "C:\\Users\\sawan\\Downloads\\paper-to-prototype\\input\\adwin\\paper.pdf"}
+{"ts": "2026-06-01T00:38:00.101405Z", "stage": "extract_spec", "focus": null}
+{"ts": "2026-06-01T00:38:28.750846Z", "stage": "codegen_initial"}
+{"ts": "2026-06-01T00:39:18.917767Z", "stage": "execute", "iter": 1}
+{"ts": "2026-06-01T00:39:25.994600Z", "stage": "execute_ok", "iter": 1}
+{"ts": "2026-06-01T00:39:25.995135Z", "stage": "extract_figures"}
+{"ts": "2026-06-01T00:39:26.009717Z", "stage": "write_report", "figures": 1}
+{"ts": "2026-06-01T00:39:26.011141Z", "stage": "done", "status": "ok", "iterations": 1, "success_iteration": 1, "wall_seconds": 93.2, "input_tokens": 25232, "output_tokens": 4598, "total_tokens": 29830}

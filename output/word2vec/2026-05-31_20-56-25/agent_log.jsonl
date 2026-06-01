@@ -1,0 +1,8 @@
+{"ts": "2026-06-01T00:56:25.870755Z", "stage": "pdf_read", "pdf": "C:\\Users\\sawan\\Downloads\\paper-to-prototype\\input\\word2vec\\paper.pdf"}
+{"ts": "2026-06-01T00:56:28.701686Z", "stage": "extract_spec", "focus": null}
+{"ts": "2026-06-01T00:56:51.921894Z", "stage": "codegen_initial"}
+{"ts": "2026-06-01T00:57:47.093807Z", "stage": "execute", "iter": 1}
+{"ts": "2026-06-01T00:57:58.491178Z", "stage": "execute_ok", "iter": 1}
+{"ts": "2026-06-01T00:57:58.491664Z", "stage": "extract_figures"}
+{"ts": "2026-06-01T00:57:58.503880Z", "stage": "write_report", "figures": 1}
+{"ts": "2026-06-01T00:57:58.505113Z", "stage": "done", "status": "ok", "iterations": 1, "success_iteration": 1, "wall_seconds": 92.6, "input_tokens": 14622, "output_tokens": 5290, "total_tokens": 19912}

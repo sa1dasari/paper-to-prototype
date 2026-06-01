@@ -1,0 +1,82 @@
+{
+  "total_attempted": 4,
+  "successful": 4,
+  "success_rate": 1.0,
+  "avg_iterations": 1.5,
+  "avg_success_iteration": 1.5,
+  "avg_wall_seconds": 301.15,
+  "total_wall_seconds": 1206.8,
+  "total_tokens": 111641,
+  "avg_figure_score": 0.29,
+  "ssim_available": true,
+  "results": [
+    {
+      "name": "adwin",
+      "pdf": "C:\\Users\\sawan\\Downloads\\paper-to-prototype\\input\\adwin\\paper.pdf",
+      "output": "C:\\Users\\sawan\\Downloads\\paper-to-prototype\\output\\adwin",
+      "status": "ok",
+      "iterations": 1,
+      "success_iteration": 1,
+      "wall_seconds": 93.2,
+      "tokens": {
+        "input_tokens": 25232,
+        "output_tokens": 4598,
+        "total_tokens": 29830
+      },
+      "auto_installs": [],
+      "figure_score": 0.2607,
+      "error": null
+    },
+    {
+      "name": "batch_normalization",
+      "pdf": "C:\\Users\\sawan\\Downloads\\paper-to-prototype\\input\\batch_normalization\\paper.pdf",
+      "output": "C:\\Users\\sawan\\Downloads\\paper-to-prototype\\output\\batch_normalization",
+      "status": "ok",
+      "iterations": 1,
+      "success_iteration": 1,
+      "wall_seconds": 130.8,
+      "tokens": {
+        "input_tokens": 17616,
+        "output_tokens": 4435,
+        "total_tokens": 22051
+      },
+      "auto_installs": [],
+      "figure_score": 0.1955,
+      "error": null
+    },
+    {
+      "name": "dropout",
+      "pdf": "C:\\Users\\sawan\\Downloads\\paper-to-prototype\\input\\dropout\\paper.pdf",
+      "output": "C:\\Users\\sawan\\Downloads\\paper-to-prototype\\output\\dropout",
+      "status": "ok",
+      "iterations": 3,
+      "success_iteration": 3,
+      "wall_seconds": 888.0,
+      "tokens": {
+        "input_tokens": 32002,
+        "output_tokens": 7846,
+        "total_tokens": 39848
+      },
+      "auto_installs": [],
+      "figure_score": 0.3503,
+      "error": null
+    },
+    {
+      "name": "word2vec",
+      "pdf": "C:\\Users\\sawan\\Downloads\\paper-to-prototype\\input\\word2vec\\paper.pdf",
+      "output": "C:\\Users\\sawan\\Downloads\\paper-to-prototype\\output\\word2vec",
+      "status": "ok",
+      "iterations": 1,
+      "success_iteration": 1,
+      "wall_seconds": 92.6,
+      "tokens": {
+        "input_tokens": 14622,
+        "output_tokens": 5290,
+        "total_tokens": 19912
+      },
+      "auto_installs": [],
+      "figure_score": 0.3546,
+      "error": null
+    }
+  ]
+}

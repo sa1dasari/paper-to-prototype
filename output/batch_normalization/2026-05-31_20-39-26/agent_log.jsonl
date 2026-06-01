@@ -1,0 +1,8 @@
+{"ts": "2026-06-01T00:39:26.465277Z", "stage": "pdf_read", "pdf": "C:\\Users\\sawan\\Downloads\\paper-to-prototype\\input\\batch_normalization\\paper.pdf"}
+{"ts": "2026-06-01T00:39:36.093008Z", "stage": "extract_spec", "focus": null}
+{"ts": "2026-06-01T00:39:56.535786Z", "stage": "codegen_initial"}
+{"ts": "2026-06-01T00:40:35.033963Z", "stage": "execute", "iter": 1}
+{"ts": "2026-06-01T00:41:37.271942Z", "stage": "execute_ok", "iter": 1}
+{"ts": "2026-06-01T00:41:37.272453Z", "stage": "extract_figures"}
+{"ts": "2026-06-01T00:41:37.292041Z", "stage": "write_report", "figures": 1}
+{"ts": "2026-06-01T00:41:37.293489Z", "stage": "done", "status": "ok", "iterations": 1, "success_iteration": 1, "wall_seconds": 130.8, "input_tokens": 17616, "output_tokens": 4435, "total_tokens": 22051}

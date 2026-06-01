@@ -1,0 +1,12 @@
+{"ts": "2026-06-01T00:41:37.593790Z", "stage": "pdf_read", "pdf": "C:\\Users\\sawan\\Downloads\\paper-to-prototype\\input\\dropout\\paper.pdf"}
+{"ts": "2026-06-01T00:41:44.825052Z", "stage": "extract_spec", "focus": null}
+{"ts": "2026-06-01T00:42:07.994641Z", "stage": "codegen_initial"}
+{"ts": "2026-06-01T00:42:35.998156Z", "stage": "execute", "iter": 1}
+{"ts": "2026-06-01T00:47:45.682294Z", "stage": "execute_error", "iter": 1, "error_name": "CellTimeoutError", "error_value": "Cell execution timed out after 300 seconds. Consider increasing --timeout or optimizing the generated code."}
+{"ts": "2026-06-01T00:48:11.865576Z", "stage": "execute", "iter": 2}
+{"ts": "2026-06-01T00:53:19.388689Z", "stage": "execute_error", "iter": 2, "error_name": "CellTimeoutError", "error_value": "Cell execution timed out after 300 seconds. Consider increasing --timeout or optimizing the generated code."}
+{"ts": "2026-06-01T00:53:45.283735Z", "stage": "execute", "iter": 3}
+{"ts": "2026-06-01T00:56:25.567608Z", "stage": "execute_ok", "iter": 3}
+{"ts": "2026-06-01T00:56:25.568135Z", "stage": "extract_figures"}
+{"ts": "2026-06-01T00:56:25.593063Z", "stage": "write_report", "figures": 1}
+{"ts": "2026-06-01T00:56:25.594584Z", "stage": "done", "status": "ok", "iterations": 3, "success_iteration": 3, "wall_seconds": 888.0, "input_tokens": 32002, "output_tokens": 7846, "total_tokens": 39848}

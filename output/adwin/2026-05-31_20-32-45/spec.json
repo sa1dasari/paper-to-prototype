@@ -1,0 +1,21 @@
+{
+  "title": "Learning from Time-Changing Data with Adaptive Windowing (ADWIN2)",
+  "inputs": "A stream of real values x_1, x_2, ..., x_t from possibly time-varying distributions D_t",
+  "outputs": "An estimate of the current mean \u03bc_W and automatic detection of distribution changes with adaptive window size W",
+  "hyperparameters": {
+    "delta": 0.002,
+    "M": 5
+  },
+  "pseudocode": "1. Initialize empty window W\n2. For each arriving element x_t:\n3.   Add x_t to head of W\n4.   Maintain O(log W) buckets of size powers of 2\n5.   When M+1 buckets of same size exist, merge two oldest\n6.   For each bucket boundary (O(log W) cutpoints):\n7.     Split W into W_0 (old) and W_1 (recent)\n8.     Compute means \u03bc_W0, \u03bc_W1\n9.     Compute n_0, n_1 (lengths), m = harmonic mean\n10.    Set \u03b4' = \u03b4 / ln(n)\n11.    Compute \u03b5_cut = sqrt((1/(2m)) * ln(4/\u03b4'))\n12.    If |\u03bc_W0 - \u03bc_W1| >= \u03b5_cut:\n13.      Drop oldest bucket from W (shrink window)\n14.      Break (change detected)\n15.  Output current mean \u03bc_W",
+  "key_equations": [
+    "m = 1 / (1/n_0 + 1/n_1)  // harmonic mean of subwindow lengths",
+    "\u03b4' = \u03b4 / ln(n)  // Bonferroni correction for multiple hypothesis testing",
+    "\u03b5_cut = sqrt((1/(2m)) * ln(4/\u03b4'))  // threshold for detecting change using Hoeffding bound",
+    "|\u03bc_W0 - \u03bc_W1| >= \u03b5_cut  // condition for declaring distribution change",
+    "Bucket compression: when M+1 buckets of size 2^i exist, merge two oldest into size 2^(i+1)"
+  ],
+  "evaluation_dataset": "Synthetic Bernoulli streams with changing probability \u03bc_t (abrupt and gradual changes); Rotating hyperplane concept drift; Electricity Market Dataset (NSW, 45312 instances)",
+  "toy_dataset_suggestion": "Synthetic Bernoulli bit stream of 10,000 samples with \u03bc=0.2 for first 5,000 steps, then linear increase to \u03bc=0.8 over next 5,000 steps",
+  "key_figure_description": "Time series plot with two y-axes: Left axis shows true \u03bc_t (step line) and estimated \u03bc_W (smooth line) ranging 0-1; Right axis shows window width W (shaded area) ranging 0-2500. X-axis is time t from 0 to 3000. Shows window growing linearly during stable period, sharp drop when change occurs around t=1000, then growing again. Demonstrates adaptive window shrinking at change point.",
+  "notes": "Simplifications for toy version: 1) Use the normal approximation for \u03b5_cut in Eq 3.1 instead of pure Hoeffding bound for better sensitivity. 2) Focus on detecting changes in Bernoulli probability (boolean case) rather than real-valued streams. 3) Skip the Na\u00a8\u0131ve Bayes and k-means integration; just evaluate ADWIN2 as a change detector/estimator. 4) Compare to 2-3 fixed window sizes (e.g., 32, 512) instead of full range. 5) Measure: false positive rate when no change, detection delay when change occurs, and mean squared error of \u03bc_W estimate. 6) Use M=5 buckets per size as in paper. 7) Skip flushing window variants to simplify comparison."
+}
