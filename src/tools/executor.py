@@ -8,7 +8,7 @@ from typing import Optional
 
 import nbformat
 from nbclient import NotebookClient
-from nbclient.exceptions import CellExecutionError
+from nbclient.exceptions import CellExecutionError, CellTimeoutError
 
 
 @dataclass
@@ -45,6 +45,17 @@ def execute_notebook(nb_path: Path, timeout: int = 300,
         client.execute()
         nbformat.write(nb, str(nb_path))
         return ExecutionResult(success=True, executed_path=str(nb_path))
+    except CellTimeoutError as e:
+        # Cell execution timed out. Persist partial outputs and report timeout.
+        nbformat.write(nb, str(nb_path))
+        return ExecutionResult(
+            success=False,
+            error_name="CellTimeoutError",
+            error_value=f"Cell execution timed out after {timeout} seconds. "
+                        "Consider increasing --timeout or optimizing the generated code.",
+            traceback=str(e),
+            executed_path=str(nb_path),
+        )
     except CellExecutionError:
         # Persist partial outputs for inspection.
         nbformat.write(nb, str(nb_path))
