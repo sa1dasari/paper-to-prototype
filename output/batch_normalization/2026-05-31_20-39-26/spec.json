@@ -1,0 +1,23 @@
+{
+  "title": "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift",
+  "inputs": "Mini-batches of training examples (e.g., images with labels) fed through a neural network",
+  "outputs": "Normalized activations at each layer during training; trained network parameters with population statistics for inference",
+  "hyperparameters": {
+    "batch_size": 32,
+    "learning_rate": 0.01,
+    "epsilon": 1e-05,
+    "momentum": 0.9
+  },
+  "pseudocode": "1. For each layer with activations x in the network:\n2.   Initialize learnable parameters \u03b3=1, \u03b2=0\n3. During training (for each mini-batch B):\n4.   Forward pass:\n5.     Compute mini-batch mean: \u03bc_B = (1/m) \u03a3 x_i\n6.     Compute mini-batch variance: \u03c3\u00b2_B = (1/m) \u03a3 (x_i - \u03bc_B)\u00b2\n7.     Normalize: x\u0302_i = (x_i - \u03bc_B) / sqrt(\u03c3\u00b2_B + \u03b5)\n8.     Scale and shift: y_i = \u03b3 * x\u0302_i + \u03b2\n9.     Pass y_i to next layer\n10.  Backward pass:\n11.    Compute gradients \u2202\u2113/\u2202\u03b3, \u2202\u2113/\u2202\u03b2, \u2202\u2113/\u2202x using chain rule\n12.    Update \u03b3, \u03b2, and propagate gradients to previous layers\n13.  Track running mean and variance using exponential moving average\n14. During inference:\n15.   Use population statistics: x\u0302 = (x - E[x]) / sqrt(Var[x] + \u03b5)\n16.   Apply learned transform: y = \u03b3 * x\u0302 + \u03b2",
+  "key_equations": [
+    "\u03bc_B = (1/m) \u03a3_{i=1}^m x_i",
+    "\u03c3\u00b2_B = (1/m) \u03a3_{i=1}^m (x_i - \u03bc_B)\u00b2",
+    "x\u0302_i = (x_i - \u03bc_B) / sqrt(\u03c3\u00b2_B + \u03b5)",
+    "y_i = \u03b3 * x\u0302_i + \u03b2",
+    "\u2202\u2113/\u2202x_i = (\u2202\u2113/\u2202x\u0302_i) * (1/sqrt(\u03c3\u00b2_B + \u03b5)) + (\u2202\u2113/\u2202\u03c3\u00b2_B) * (2(x_i - \u03bc_B)/m) + (\u2202\u2113/\u2202\u03bc_B) * (1/m)"
+  ],
+  "evaluation_dataset": "ImageNet LSVRC2012 (1000-class classification); MNIST for initial validation experiments",
+  "toy_dataset_suggestion": "MNIST (28x28 grayscale digit images, 60k train / 10k test) - use a simple 3-layer fully-connected network with 100 hidden units per layer and sigmoid activations as described in Section 4.1",
+  "key_figure_description": "Figure 1(a): X-axis is training steps (0 to 50k), Y-axis is test accuracy (0.4 to 1.0). Two curves: baseline network (lower, reaching ~0.98) and batch-normalized network (upper, reaching ~0.995). Shows BN network trains faster and achieves higher accuracy. Figure 1(b,c): Distribution evolution plots showing 15th, 50th, 85th percentiles of sigmoid inputs over training - without BN shows shifting distributions, with BN shows stable distributions.",
+  "notes": "For toy implementation: (1) Focus on fully-connected layers first, skip convolutional BN details. (2) Use simple SGD with momentum rather than distributed training. (3) Don't need to reproduce ImageNet results - just show BN improves training speed and stability on MNIST. (4) Skip ensemble methods and advanced regularization. (5) Key insight to demonstrate: BN stabilizes activation distributions (track mean/variance over training) and enables faster convergence. (6) Can compare learning curves with/without BN at same learning rate to show acceleration effect."
+}
