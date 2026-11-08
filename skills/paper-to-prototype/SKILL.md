@@ -1,6 +1,8 @@
 ---
 name: paper-to-prototype
 description: Turn a machine learning research paper into a runnable Jupyter notebook that implements a minimal version of its algorithm on a toy dataset and reproduces its key figure. Use this whenever someone shares an ML or stats paper (PDF, arXiv link, or pasted text) and wants to implement it, reproduce it, prototype it, understand it through code, verify whether its claim holds, or "see it actually run." Also use it when someone asks to reimplement a named method from a paper such as dropout, batch norm, LoRA, ADWIN, or word2vec, even if they do not mention a paper file. Trigger on phrasings like "implement this paper", "does this actually work", "can you reproduce Figure 3", "build a prototype of this method", or "I want to play with this algorithm."
+license: MIT
+compatibility: Needs Python 3.10+ with a Jupyter kernel (nbformat, nbclient, ipykernel), plus numpy, matplotlib and torch or scikit-learn for the generated notebooks. No API key or network access is needed beyond fetching the paper.
 ---
 
 # Paper to Prototype
@@ -16,6 +18,32 @@ notebook should come away understanding the mechanism, not admiring a benchmark.
 Aim for an implementation of roughly 200 lines or less. If the method cannot be
 demonstrated in that budget, say so early rather than producing something bloated.
 
+## Setup
+
+Three small scripts in `scripts/` (relative to this skill's folder) handle the
+mechanical parts. Run them with the same Python that will run the notebook.
+
+Before starting, check the environment once:
+
+```
+python scripts/run_notebook.py --check-env
+```
+
+It lists missing packages and prints the `pip install` line. Install what is
+missing, or tell the user what to install if you cannot. If torch is unavailable,
+implement the method in numpy and scikit-learn instead of giving up. If the paper
+cannot be read at all (a scanned PDF with no text layer), say so rather than
+guessing at the method.
+
+| Script | Use |
+|---|---|
+| `scripts/read_pdf.py` | Extract page-marked text and figure images from a PDF |
+| `scripts/build_notebook.py` | Turn a JSON list of cells into a valid `.ipynb` |
+| `scripts/run_notebook.py` | Execute a notebook, report the first failing cell, save figures |
+
+If you cannot run scripts at all, do the same steps with whatever notebook tooling
+you have. The workflow below does not depend on them.
+
 ## Workflow
 
 Work through these five stages in order. Do not skip straight to writing code from
@@ -26,6 +54,11 @@ the paper text: the spec stage is what keeps the notebook honest and scoped.
 Read the PDF directly. If given an arXiv link, fetch it. If the user names a method
 without supplying a paper, ask for the paper or link rather than working from memory,
 since implementing a half-remembered method is how subtle errors get in.
+
+For a local PDF, `python scripts/read_pdf.py paper.pdf` prints the text with page
+markers. Add `--pages 3-6` to read one section closely and `--figures-dir figs` to
+save the figure images so you can look at the key figure itself. Garbled math in the
+output is common: see the troubleshooting reference.
 
 If the user gave a focus hint (a section number, a figure, a specific claim), let it
 narrow everything downstream. Papers often contain several contributions and the user
@@ -70,9 +103,24 @@ Write clean, readable code and let it be plain. Someone reading this notebook is
 trying to learn the method, so prefer an explicit loop over a clever vectorization
 when the two are close in speed.
 
+Write the cells as a JSON list (`[{"type": "markdown" | "code", "source": "..."}]`)
+and run `python scripts/build_notebook.py cells.json prototype.ipynb`. That is more
+reliable than hand-writing raw notebook JSON, and it validates the result.
+
 ### 4. Execute and fix
 
-Run the notebook. When a cell fails, fix the root cause rather than the symptom, then
+Run the notebook:
+
+```
+python scripts/run_notebook.py prototype.ipynb --figures-dir figures
+```
+
+It prints JSON. On success the notebook is saved with its outputs and the figures
+are written to `figures/`. On failure it names the failing cell index, the error and
+the traceback, and exits non-zero. Always look at the saved figure before declaring
+success, since a notebook can run cleanly and still plot nothing useful.
+
+When a cell fails, fix the root cause rather than the symptom, then
 re-run from the top so you know the whole thing still works in order.
 
 Cap the fix loop at 5 attempts. If it still fails, stop and report honestly what broke

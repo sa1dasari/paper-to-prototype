@@ -6,9 +6,60 @@
 
 **Scope (v1):** classical ML / small DL papers where the math fits on a page and the code fits in ~200 lines. Think word2vec, a small VAE, LoRA, the original Transformer attention, dropout, batch norm.
 
+There are two ways to use it:
+
+| | Skill (`skills/paper-to-prototype/`) | Standalone agent (`src/`) |
+|---|---|---|
+| Runs inside | Claude Code, Cursor, Codex CLI, Claude.ai, any agent that supports `SKILL.md` | Your terminal |
+| Needs an API key | No, it uses the agent you already run | Yes, `ANTHROPIC_API_KEY` |
+| Good for | Interactive use: you can steer the spec and see the notebook as it is built | Batch runs and the eval in `eval/` |
+
 ---
 
-## Architecture
+## Use it as a skill
+
+The skill is the folder [`skills/paper-to-prototype/`](skills/paper-to-prototype). It holds
+`SKILL.md`, three reference docs, a report template and three helper scripts.
+
+**Install**
+
+```bash
+# Any agent supported by the skills CLI
+npx skills add sa1dasari/paper-to-prototype --skill paper-to-prototype
+
+# Claude Code, by hand: copy the folder into your skills directory
+git clone https://github.com/sa1dasari/paper-to-prototype
+cp -r paper-to-prototype/skills/paper-to-prototype ~/.claude/skills/          # all projects
+cp -r paper-to-prototype/skills/paper-to-prototype  .claude/skills/           # one project
+```
+
+Other agents use the same folder in their own skills directory. For Claude.ai, zip the
+`paper-to-prototype` folder (the zip should contain that folder at its top level) and
+upload it where you manage skills.
+
+**Python packages** the skill relies on (it checks and tells you what is missing):
+
+```bash
+pip install nbformat nbclient ipykernel numpy matplotlib scikit-learn torch pdfplumber
+```
+
+**Use**
+
+Open your agent in a folder with a paper PDF and say something like:
+
+> Implement this paper as a toy notebook: `paper.pdf`
+> Can you reproduce Figure 3 from the dropout paper?
+> Focus on Section 4 only.
+
+You get `spec.json`, `prototype.ipynb`, `REPRODUCTION.md` and `figures/`. The skill is
+strict about two things: it will tell you when a paper is a poor fit, and when the toy
+version does not show the paper's effect it reports that instead of tuning until it does.
+
+---
+
+## Use it as a standalone agent
+
+### Architecture
 
 ```
                          ┌──────────────────────────────────────────────┐
@@ -35,18 +86,23 @@
 
 ---
 
-## Quickstart
+### Quickstart
+
+```bash
+pip install -r requirements.txt
+cp .env.example .env   # then set ANTHROPIC_API_KEY
+```
 
 Drop a paper PDF into `input/<name>/paper.pdf` and run:
 
-```powershell
-python -m src input\word2vec\paper.pdf --output-dir output\word2vec
+```bash
+python -m src input/word2vec/paper.pdf --output-dir output/word2vec
 ```
 
 With a focus hint and a tighter loop:
 
-```powershell
-python -m src input\word2vec\paper.pdf --output-dir output\word2vec --focus "Section 4" --max-iters 3
+```bash
+python -m src input/word2vec/paper.pdf --output-dir output/word2vec --focus "Section 4" --max-iters 3
 ```
 
 Repo layout for inputs/outputs:
@@ -86,7 +142,7 @@ pdf_path                positional, required
 --overwrite             write into --output-dir directly (no timestamped subfolder)
 ```
 
-### Live progress logs
+#### Live progress logs
 
 Both `agent.py` and `eval/success_rate.py` print per-stage progress to stderr in real time. A successful word2vec run looks like:
 
@@ -104,15 +160,19 @@ Long pauses between lines are normal — Claude calls take 20–60s and notebook
 
 ---
 
-## Scope & non-goals
+### Scope & non-goals
 
 - **In scope:** ≤ ~200 LOC implementations, single-laptop CPU, runtime budget ≈ 2 minutes per notebook, qualitative reproduction of the *trend* in one key figure.
 - **Out of scope:** large-scale pretraining, multi-GPU, exact-number SOTA reproduction, papers whose method depends on a proprietary dataset.
 
-## Known failure modes
+### Known failure modes
 
 - Papers that are mostly empirical tables (no algorithm to extract) confuse the extractor.
 - Heavy LaTeX math layouts can corrupt `pdfplumber` text extraction; try `--focus` to point at a cleaner section.
 - The fixer has a hard cap at 5 iterations. Pathological errors (missing native deps, kernel crashes) won't recover.
 
+---
 
+## License
+
+MIT. See [LICENSE](LICENSE). The papers in `input/` are the property of their authors and publishers and are included only as sample inputs.
