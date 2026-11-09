@@ -11,6 +11,11 @@ methods. Recognise this while reading, before writing a spec. Offer instead to
 reproduce one experimental comparison from the paper's reported numbers, or to
 implement whichever baseline the paper builds on.
 
+**Text from inside figures is garbled.**
+Axis labels and legends come out reversed or as `(cid:64)` codes. Do not try to decode
+them. Read the caption and the prose that discusses the figure, and open the saved
+figure image itself if you need the axes.
+
 **Math is garbled in the extracted text.**
 Dense LaTeX often survives PDF extraction badly, with subscripts inlined and symbols
 dropped. Cross-check any equation against the rendered figure or the paper's prose
@@ -45,7 +50,17 @@ the figure defeats the purpose of the notebook.
 **A dataset download hangs or fails.**
 Fall back to a synthetic generator. `sklearn.datasets.make_classification` and
 `make_blobs` cover most cases, and generating data in process is more robust than
-depending on a mirror.
+depending on a mirror. The bundled `sklearn.datasets.load_digits` needs no network at
+all. Better still, start there so the notebook never depends on a download.
+
+**`run_notebook.py` says BlockedBySecurityCheck.**
+The notebook imports a process or network library, reads the environment, calls
+`open()` or uses a shell escape. Remove it. A reproduction needs none of these. Do not
+use `--allow-unsafe` on code derived from a paper.
+
+**The run hits the total budget.**
+The budget includes kernel start-up. Cut the dataset first, then the epochs, then the
+number of seeds.
 
 ## When the fix loop stalls
 

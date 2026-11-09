@@ -16,10 +16,14 @@ not reproduce the trend / did not run, with the reason.]
 - **Toy dataset:** [what it is, how big, why it was chosen over the paper's]
 - **Hyperparameters:** [the toy values, as a short list]
 - **Deliberately skipped:** [components left out and why. This list is a feature.]
+- **Additions not in the paper:** [anything added to make the effect visible, such as
+  label noise or a harder split. Write "none" if none. Unlabelled additions mislead.]
 
 ## Result
 
 ![key figure](figures/figure_01.png)
+
+[Name the file here if the notebook drew more than one figure.]
 
 **Numeric result:** [the printed metric, with the comparison that makes it meaningful.
 A single number without a baseline says nothing.]
@@ -46,5 +50,7 @@ numbers did not.
 |---|---|
 | Status | [success / partial / failed] |
 | Fix iterations used | [n of 5] |
+| Seeds | [how many, and the spread across them] |
+| Pass condition | [the spec's pass_condition, and PASS or FAIL] |
 | Notebook runtime | [seconds] |
 | Environment | CPU only |

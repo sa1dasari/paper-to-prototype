@@ -7,3 +7,6 @@ __pycache__/
 # Eval cache
 eval/results.json
 
+
+# Datasets downloaded by generated notebooks (re-downloadable, tens of MB each)
+output/**/data/

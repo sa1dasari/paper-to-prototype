@@ -4,7 +4,7 @@ A structured summary of the paper, written before any code. Its job is to force
 every ambiguous decision into the open while it is still cheap to change, and to
 give the notebook a concrete target instead of a vague intent.
 
-Save it as `spec.json`.
+Save it as `spec.json`. `scripts/lint.py --spec spec.json` checks that the fields are present.
 
 ## Fields
 
@@ -19,6 +19,8 @@ Save it as `spec.json`.
 | `evaluation_dataset` | string | What the paper actually used |
 | `toy_dataset_suggestion` | string | The laptop-sized substitute, with size and shape |
 | `key_figure_description` | string | The one figure to reproduce: axes, curves, expected ordering |
+| `conventions` | string | What the paper's symbols mean where they could be read two ways, such as whether `p` is a keep or a drop probability |
+| `pass_condition` | string | A numeric test of the key figure, such as "dropout test error is below plain test error at the last epoch on at least 2 of 3 seeds". The notebook prints PASS or FAIL against it |
 | `notes` | string | Simplifications, what to skip, known caveats |
 
 ## Getting the two hard fields right
@@ -65,8 +67,10 @@ Extracted from *Efficient Estimation of Word Representations in Vector Space*:
     "Negative sampling: log sigma(v'_{wO} . v_{wI}) + sum_{i=1}^{k} E_{w_i ~ Pn(w)}[log sigma(-v'_{w_i} . v_{wI})]"
   ],
   "evaluation_dataset": "Google News corpus, 6B tokens, 1M vocabulary, evaluated on 19,544 analogy questions",
-  "toy_dataset_suggestion": "sklearn fetch_20newsgroups, a few thousand documents, vocabulary capped at 3,000 words. Small enough to train in under a minute and still large enough for nearest-neighbour structure to appear.",
+  "toy_dataset_suggestion": "sklearn fetch_20newsgroups, a few thousand documents, vocabulary capped at 3,000 words. Small enough to train in under a minute and still large enough for nearest-neighbour structure to appear. It downloads, so fall back to a synthetic corpus with three topic clusters if there is no network.",
   "key_figure_description": "A 2D PCA or t-SNE scatter of the learned embeddings for 30 to 50 selected words drawn from three clear semantic groups such as sports, computing, and religion. Points from the same group should cluster together. Alongside it, print the 5 nearest neighbours of 3 query words as the numeric check.",
+  "conventions": "Skip-gram predicts context words from the centre word. Negative samples are drawn from the unigram distribution raised to the 3/4 power.",
+  "pass_condition": "For each of 3 query words, at least 3 of the 5 nearest neighbours come from the same semantic group, and the mean within-group cosine similarity exceeds the mean between-group similarity.",
   "notes": "Implement skip-gram only, not CBOW. Use negative sampling rather than hierarchical softmax. Skip subsampling of frequent words and the distributed training setup entirely. Do not attempt the analogy benchmark: the toy corpus is far too small for king - man + woman to resolve, and reaching for it produces a misleading result."
 }
 ```

@@ -2,7 +2,7 @@
 
 > Drop in an ML paper PDF → get back a runnable Jupyter notebook with a minimal PyTorch implementation, a toy dataset, and the key figure reproduced.
 
-`paper-to-prototype` is a small **agent loop** built on Anthropic's Claude. It reads a paper, writes a notebook, runs it, reads the traceback when it explodes, fixes the code, and repeats — up to 5 times — until the notebook executes end-to-end and produces a figure.
+`paper-to-prototype` reads a paper, writes a notebook, runs it, reads the traceback when it explodes, fixes the code, and repeats (up to 5 times) until the notebook executes end to end and produces a figure. It ships two ways: as a **skill** for any agent that supports `SKILL.md`, and as a standalone **agent loop** built on the Claude API.
 
 **Scope (v1):** classical ML / small DL papers where the math fits on a page and the code fits in ~200 lines. Think word2vec, a small VAE, LoRA, the original Transformer attention, dropout, batch norm.
 
@@ -37,10 +37,11 @@ Other agents use the same folder in their own skills directory. For Claude.ai, z
 `paper-to-prototype` folder (the zip should contain that folder at its top level) and
 upload it where you manage skills.
 
-**Python packages** the skill relies on (it checks and tells you what is missing):
+**Python packages** the skill relies on (it checks and tells you what is missing; run `python3 skills/paper-to-prototype/scripts/run_notebook.py --check-env`):
 
 ```bash
-pip install nbformat nbclient ipykernel numpy matplotlib scikit-learn torch pdfplumber
+pip install nbformat nbclient ipykernel numpy matplotlib scikit-learn pdfplumber
+# torch is optional: the skill falls back to numpy and scikit-learn without it
 ```
 
 **Use**
@@ -52,8 +53,15 @@ Open your agent in a folder with a paper PDF and say something like:
 > Focus on Section 4 only.
 
 You get `spec.json`, `prototype.ipynb`, `REPRODUCTION.md` and `figures/`. The skill is
-strict about two things: it will tell you when a paper is a poor fit, and when the toy
-version does not show the paper's effect it reports that instead of tuning until it does.
+strict about three things: it tells you when a paper is a poor fit, it reports a failed
+reproduction instead of tuning until the effect appears, and it treats the paper as
+untrusted input. A static check blocks generated notebooks that start processes, open
+sockets, read files or read environment variables, and the runner hides likely secrets
+from the notebook's kernel. That is a safety net, not a sandbox, so use a container if
+you run papers you do not trust.
+
+The helper scripts are `read_pdf.py`, `build_notebook.py`, `lint.py` and `run_notebook.py`.
+They use only the packages above and never call an API.
 
 ---
 
@@ -127,7 +135,7 @@ output/
 
 Each invocation writes to a fresh timestamped subfolder so re-runs don't clobber prior results. Pass `--overwrite` to write directly into `--output-dir` instead (the old behavior). The sibling `latest.txt` always names the newest run.
 
-> Every artifact under `output/<name>/<timestamp>/` (notebook, REPRODUCTION.md, spec.json, figures, paper_figures, `agent_log.jsonl`) is **committed to git** — each historical run is fully reproducible from the repo. Only `__pycache__/`, the venv, `.env`, and `eval/results.json` are ignored.
+> Every artifact under `output/<name>/<timestamp>/` (notebook, REPRODUCTION.md, spec.json, figures, paper_figures, `agent_log.jsonl`) is **committed to git**, so past runs can be inspected. Only `__pycache__/`, the venv, `.env`, `eval/results.json` and downloaded datasets (`output/**/data/`) are ignored.
 
 CLI flags:
 
