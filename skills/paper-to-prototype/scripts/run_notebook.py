@@ -10,11 +10,13 @@ What it does, and why:
   * Runs the notebook with THIS interpreter (sys.executable), so the packages you
     checked with --check-env are the packages the notebook sees.
   * Refuses to run notebooks that fail the security checks in lint.py (shell escapes,
-    network or process libraries, env access, file access). Override with --allow-unsafe
-    only for a notebook you wrote and read yourself.
-  * Removes likely secrets (names containing KEY, TOKEN, SECRET, PASSWORD, CREDENTIAL,
-    AUTH, COOKIE, SESSION) from the environment the kernel sees. This is best effort,
-    not a sandbox. For papers you do not trust, run inside a container or VM.
+    network or process libraries, env access, file access, imports outside the allow-list).
+    --allow-module NAME permits one extra module you have read. --allow-unsafe skips the
+    check and is for code you wrote yourself, never for code derived from a paper.
+  * Gives the kernel only a short allow-list of environment variables (PATH, HOME, locale,
+    temp dirs, thread settings, matplotlib and Python settings). Everything else, including
+    anything that looks like a key, token or credential, is dropped.
+  * None of this is a sandbox. For papers you do not trust, run inside a container or VM.
   * Enforces a per-cell timeout AND a total budget (default 180s).
   * Always prints one JSON object and saves the notebook with whatever outputs it got.
     Exit code is 0 on success, 1 on failure.
@@ -39,8 +41,15 @@ import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SECRET_NAME = re.compile(r"KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|AUTH|COOKIE|SESSION", re.I)
-KEEP_ENV = {"PYTHONPATH", "PYTHONHASHSEED", "MPLBACKEND"}
+ENV_KEEP = {
+    "PATH", "HOME", "USER", "LOGNAME", "SHELL", "LANG", "LANGUAGE", "TERM", "TZ", "TMPDIR", "TEMP", "TMP",
+    "VIRTUAL_ENV", "CONDA_PREFIX", "CONDA_DEFAULT_ENV", "PYTHONPATH", "PYTHONHASHSEED", "PYTHONIOENCODING",
+    "PYTHONUTF8", "MPLBACKEND", "MPLCONFIGDIR", "JUPYTER_PATH", "JUPYTER_CONFIG_DIR", "JUPYTER_DATA_DIR",
+    "JUPYTER_RUNTIME_DIR", "IPYTHONDIR", "SYSTEMROOT", "SYSTEMDRIVE", "WINDIR", "COMSPEC", "PATHEXT",
+    "USERPROFILE", "APPDATA", "LOCALAPPDATA", "OS", "PROCESSOR_ARCHITECTURE", "NUMBER_OF_PROCESSORS",
+    "XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_RUNTIME_DIR", "LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH",
+}
+ENV_KEEP_PREFIXES = ("LC_", "OMP_", "MKL_", "OPENBLAS_", "NUMEXPR_", "VECLIB_", "KMP_")
 
 
 class BudgetExhausted(Exception):
@@ -81,12 +90,14 @@ def strip_ansi(s: str) -> str:
     return re.sub(r"\x1b\[[0-9;]*m", "", s)
 
 
-def scrub_environment() -> list[str]:
-    removed = [k for k in list(os.environ)
-               if SECRET_NAME.search(k) and k not in KEEP_ENV]
-    for k in removed:
-        os.environ.pop(k, None)
-    return removed
+def restrict_environment() -> int:
+    """Keep only allow-listed variables. Returns how many were dropped."""
+    keep = {k: v for k, v in os.environ.items()
+            if k.upper() in ENV_KEEP or k.upper().startswith(ENV_KEEP_PREFIXES)}
+    dropped = len(os.environ) - len(keep)
+    os.environ.clear()
+    os.environ.update(keep)
+    return dropped
 
 
 def register_kernel_for_this_python() -> str:
@@ -132,14 +143,13 @@ def stdout_lines(nb) -> int:
     return n
 
 
-def run(nb_path: Path, timeout: int, total_timeout: int, figures_dir: Path | None,
+def run(nb, nb_path: Path, timeout: int, total_timeout: int, figures_dir: Path | None,
         kernel_name: str) -> dict:
     import nbformat
     from nbclient import NotebookClient
     from nbclient.exceptions import CellExecutionError, CellTimeoutError, DeadKernelError
 
     result: dict = {"success": False, "notebook": str(nb_path), "warnings": []}
-    nb = nbformat.read(str(nb_path), as_version=4)
     client = NotebookClient(
         nb, timeout=timeout, kernel_name=kernel_name, allow_errors=False,
         resources={"metadata": {"path": str(nb_path.parent.resolve())}},
@@ -207,8 +217,10 @@ def main() -> int:
     ap.add_argument("--total-timeout", type=int, default=180, help="whole-notebook budget in seconds (default 180)")
     ap.add_argument("--figures-dir", type=Path, help="save PNG outputs here (old figure_*.png are removed)")
     ap.add_argument("--check-env", action="store_true", help="report the environment and exit")
+    ap.add_argument("--allow-module", action="append", default=[],
+                    help="permit one extra top-level module in the security check (repeatable)")
     ap.add_argument("--allow-unsafe", action="store_true",
-                    help="skip the security check (only for code you wrote and read yourself)")
+                    help="skip the security check. For code you wrote yourself, never for code from a paper")
     args = ap.parse_args()
 
     if args.check_env:
@@ -219,25 +231,29 @@ def main() -> int:
     if missing:
         sys.exit("Install the runner:  pip install " + " ".join(missing))
 
+    import nbformat
+    try:
+        nb = nbformat.read(str(args.notebook), as_version=4)  # parsed once: what is checked is what runs
+    except Exception as e:
+        sys.exit(f"Could not read notebook: {e}")
+
     if not args.allow_unsafe:
         sys.path.insert(0, str(HERE))
         import lint
-        try:
-            problems = lint.check_security(lint.load_cells(args.notebook))
-        except Exception as e:
-            sys.exit(f"Could not read notebook: {e}")
+        problems = lint.check_security(lint.cells_from_nb(nb), set(args.allow_module))
         if problems:
             print(json.dumps({
                 "success": False, "notebook": str(args.notebook),
                 "error_name": "BlockedBySecurityCheck",
-                "error_value": "Not executed. Remove these, or use --allow-unsafe only if you wrote and read this code.",
+                "error_value": "Not executed. Rewrite the notebook without these. Do not bypass the check "
+                               "for code that came from a paper.",
                 "blocking": problems}, indent=2))
             return 1
 
-    removed = scrub_environment()
+    dropped = restrict_environment()
     kernel = register_kernel_for_this_python()
-    result = run(args.notebook, args.timeout, args.total_timeout, args.figures_dir, kernel)
-    result["env_vars_hidden_from_kernel"] = len(removed)
+    result = run(nb, args.notebook, args.timeout, args.total_timeout, args.figures_dir, kernel)
+    result["env_vars_dropped_for_kernel"] = dropped
     print(json.dumps(result, indent=2))
     return 0 if result["success"] else 1
 

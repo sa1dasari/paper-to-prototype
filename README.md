@@ -1,6 +1,6 @@
 # paper-to-prototype
 
-> Drop in an ML paper PDF → get back a runnable Jupyter notebook with a minimal PyTorch implementation, a toy dataset, and the key figure reproduced.
+> Drop in an ML paper PDF → get back a runnable Jupyter notebook with a minimal implementation (PyTorch or plain numpy), a toy dataset, and the key figure reproduced.
 
 `paper-to-prototype` reads a paper, writes a notebook, runs it, reads the traceback when it explodes, fixes the code, and repeats (up to 5 times) until the notebook executes end to end and produces a figure. It ships two ways: as a **skill** for any agent that supports `SKILL.md`, and as a standalone **agent loop** built on the Claude API.
 
@@ -56,12 +56,13 @@ You get `spec.json`, `prototype.ipynb`, `REPRODUCTION.md` and `figures/`. The sk
 strict about three things: it tells you when a paper is a poor fit, it reports a failed
 reproduction instead of tuning until the effect appears, and it treats the paper as
 untrusted input. A static check blocks generated notebooks that start processes, open
-sockets, read files or read environment variables, and the runner hides likely secrets
-from the notebook's kernel. That is a safety net, not a sandbox, so use a container if
-you run papers you do not trust.
+sockets, read files or read environment variables, only known math and plotting modules can
+be imported, and the notebook's kernel gets a short allow-list of environment variables.
+That is a safety net, not a sandbox, so use a container if you run papers you do not trust.
 
 The helper scripts are `read_pdf.py`, `build_notebook.py`, `lint.py` and `run_notebook.py`.
-They use only the packages above and never call an API.
+They use only the packages above and never call an API. Regression tests for them,
+including a list of known bypass attempts, run with `python3 tests/test_skill_scripts.py`.
 
 ---
 
@@ -164,7 +165,7 @@ Both `agent.py` and `eval/success_rate.py` print per-stage progress to stderr in
 [agent] [+106.7s] done           status=ok  iterations=1
 ```
 
-Long pauses between lines are normal — Claude calls take 20–60s and notebook execution can take a minute or two. The same stages are also persisted as JSON in `agent_log.jsonl` for later analysis.
+Long pauses between lines are normal - Claude calls take 20–60s and notebook execution can take a minute or two. The same stages are also persisted as JSON in `agent_log.jsonl` for later analysis.
 
 ---
 

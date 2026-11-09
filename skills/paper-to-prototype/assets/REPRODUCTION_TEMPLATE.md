@@ -1,4 +1,4 @@
-# Reproduction Report — [Paper title]
+# Reproduction Report: [Paper title]
 
 [One line status: the notebook ran end to end and reproduced the trend / ran but did
 not reproduce the trend / did not run, with the reason.]
@@ -6,7 +6,7 @@ not reproduce the trend / did not run, with the reason.]
 ## The paper
 
 - **Title:** [full title, with the method's common name]
-- **Link:** [arXiv or DOI if known]
+- **Link:** [arXiv or DOI, or "not available" if the PDF carries neither]
 - **Original evaluation:** [datasets and scale the paper used]
 - **Claim being tested:** [the specific claim, in one or two sentences. Not the
   paper's overall contribution, the single thing this notebook checks.]
@@ -24,6 +24,9 @@ not reproduce the trend / did not run, with the reason.]
 ![key figure](figures/figure_01.png)
 
 [Name the file here if the notebook drew more than one figure.]
+
+**Paper versus toy:** [the paper's reported number next to the toy number, for example
+"detection delay about 10 in the paper, 25 to 59 here", and why they differ.]
 
 **Numeric result:** [the printed metric, with the comparison that makes it meaningful.
 A single number without a baseline says nothing.]

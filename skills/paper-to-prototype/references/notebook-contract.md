@@ -26,8 +26,9 @@ Follow this order. Each cell earns its place.
    line starting `PASS` or `FAIL` that states whether the spec's `pass_condition` held.
    The figure alone is not enough, because a number can be compared and a picture
    cannot.
-9. **Code**: the key figure with matplotlib. Draw exactly one key figure and make it
-   the last figure in the notebook, so the report can point at `figures/figure_01.png`
+9. **Code**: the key figure with matplotlib. Draw exactly one key figure (one
+   `plt.figure`, with panels if the result needs them) and make it the last figure in
+   the notebook, so the report can point at `figures/figure_01.png`
    unambiguously. Label both axes, add a legend when there is more than one curve, and
    end the cell with `plt.show()` so it renders in any viewer.
 10. **Markdown**: what to look for in the figure, and what would count as the effect
@@ -53,20 +54,24 @@ else's machine.
 - **No torch? Use numpy.** A numpy and scikit-learn notebook is a full-value result.
   Seed with `np.random.seed(0)`, write the model as plain functions, and skip
   `nn.Module` and `torch.device`.
-- **Math and plotting only.** No subprocess, sockets, `requests`, `urllib`, `os`
-  environment or file calls, `open()`, `eval` or `exec`. The paper is untrusted input,
-  so the notebook it inspires must not touch the machine. `lint.py` enforces this.
-- **Prefer data that needs no network.** Best: arrays generated in process, and the
-  datasets that ship inside scikit-learn (`load_digits`, `load_iris`, `make_blobs`,
-  `make_classification`, `make_moons`). `torchvision.datasets` and `fetch_*` loaders
-  download, so use them only with a try/except that falls back to a synthetic
-  generator. Sandboxed machines often have no network, and a URL that rots breaks the
-  notebook.
+- **Math and plotting only.** Import only numpy, scipy, matplotlib, scikit-learn, torch,
+  pandas and the standard-library modules that `lint.py` lists as allowed. No
+  subprocess, sockets, `os` or `sys`, file reads or writes (`open`, `np.load`,
+  `np.save`, `plt.savefig`), `getattr`, `eval` or `exec`. The paper is untrusted input,
+  so the notebook it inspires must not touch the machine. `lint.py` catches the common
+  ways of doing these things and `run_notebook.py` will not run a notebook that fails
+  it. It is a safety net, not a guarantee.
+- **Use data that needs no network.** Arrays generated in process, or the datasets
+  that ship inside scikit-learn (`load_digits`, `load_iris`, `make_blobs`,
+  `make_classification`, `make_moons`). `torchvision.datasets` and the `fetch_*`
+  loaders download, so `lint.py` blocks them. Sandboxed machines often have no
+  network, and a URL that rots breaks the notebook.
 - **Runs top to bottom in order.** No cell may depend on something defined below it
   or on state from a previous manual run.
 - **Deterministic.** Seeded, and free of anything that silently reintroduces
   randomness such as an unseeded shuffle or a set-ordering dependency.
-- **Short output.** Print at most about 50 lines in total. A progress line every few
+- **Short output.** Print at most about 50 lines in total, counting every line of every
+  cell. A progress line every few
   epochs is enough. A runaway print loop produces a notebook of tens of megabytes.
 
 ## Style

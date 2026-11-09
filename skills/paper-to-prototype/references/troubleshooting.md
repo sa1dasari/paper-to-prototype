@@ -16,6 +16,11 @@ Axis labels and legends come out reversed or as `(cid:64)` codes. Do not try to 
 them. Read the caption and the prose that discusses the figure, and open the saved
 figure image itself if you need the axes.
 
+**Two-column papers come out interleaved.**
+Equations in particular get split across columns. Run
+`read_pdf.py paper.pdf --pages N --render pages` and read the rendered page image. Cross-check
+against the paper's prose either way.
+
 **Math is garbled in the extracted text.**
 Dense LaTeX often survives PDF extraction badly, with subscripts inlined and symbols
 dropped. Cross-check any equation against the rendered figure or the paper's prose
@@ -54,9 +59,15 @@ depending on a mirror. The bundled `sklearn.datasets.load_digits` needs no netwo
 all. Better still, start there so the notebook never depends on a download.
 
 **`run_notebook.py` says BlockedBySecurityCheck.**
-The notebook imports a process or network library, reads the environment, calls
-`open()` or uses a shell escape. Remove it. A reproduction needs none of these. Do not
-use `--allow-unsafe` on code derived from a paper.
+The notebook imports a module outside the allow-list, reads or writes files, uses a
+shell escape, or uses `getattr` or dunder access. Remove it. A reproduction needs none
+of these. If it truly needs one more library, read what that library does and pass
+`--allow-module NAME`. Do not use `--allow-unsafe` on code derived from a paper.
+
+**The notebook ran but there is no figure.**
+Something set a non-inline matplotlib backend (`Agg`, `svg`, `pdf`), so nothing was
+embedded as a PNG. Remove the `matplotlib.use(...)` call and keep `%matplotlib inline`
+as the first line of the imports cell.
 
 **The run hits the total budget.**
 The budget includes kernel start-up. Cut the dataset first, then the epochs, then the
