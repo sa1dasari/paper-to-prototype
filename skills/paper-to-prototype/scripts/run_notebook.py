@@ -16,7 +16,11 @@ What it does, and why:
   * Gives the kernel only a short allow-list of environment variables (PATH, HOME, locale,
     temp dirs, thread settings, matplotlib and Python settings). Everything else, including
     anything that looks like a key, token or credential, is dropped.
-  * None of this is a sandbox. For papers you do not trust, run inside a container or VM.
+  * None of this is a sandbox or a security boundary. A notebook runs as you and can read
+    anything you can, including /proc/<pid>/environ of your other processes and files in
+    your home directory. Dropping variables from the kernel only reduces accidents. For
+    papers you do not trust, run the whole session in a container or VM that holds no
+    real secrets.
   * Enforces a per-cell timeout AND a total budget (default 180s).
   * Always prints one JSON object and saves the notebook with whatever outputs it got.
     Exit code is 0 on success, 1 on failure.
@@ -211,6 +215,17 @@ def run(nb, nb_path: Path, timeout: int, total_timeout: int, figures_dir: Path |
 
 
 def main() -> int:
+    try:
+        return _main()
+    except SystemExit:
+        raise
+    except Exception as e:  # keep the JSON contract even for crashes
+        print(json.dumps({"success": False, "error_name": type(e).__name__,
+                          "error_value": str(e)[:500]}, indent=2))
+        return 1
+
+
+def _main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("notebook", nargs="?", type=Path)
     ap.add_argument("--timeout", type=int, default=120, help="per-cell timeout in seconds (default 120)")

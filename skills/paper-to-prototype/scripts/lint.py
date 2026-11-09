@@ -16,9 +16,12 @@ of that.
 
 Warnings are contract gaps (seeds, a printed metric, PASS/FAIL, labelled axes).
 
-THIS IS NOT A SANDBOX. A static check raises the bar and catches the obvious and the
-lazy. It cannot stop a determined attacker, so for papers you do not trust, run the
-notebook in a container or VM, and read the generated code yourself.
+THIS IS NOT A SANDBOX AND NOT A SECURITY BOUNDARY. It is a guardrail that catches the
+obvious, the lazy and the common injected snippet. Allowed modules expose endless side
+doors (private aliases, helpers that open a path, C extensions), so a determined attacker
+gets through, and a notebook can read anything its user can read, including
+/proc/<pid>/environ of other processes. For papers you do not trust, run the whole
+session in a container or VM that holds no real secrets, and read the generated code.
 Needs only the standard library; uses nbformat when installed so it sees exactly the
 notebook the runner will execute.
 """
@@ -61,6 +64,11 @@ BANNED_ATTR_EXACT = {
     "load", "loadtxt", "loadmat", "genfromtxt", "fromfile", "fromregex", "memmap", "tofile",
     "save", "savez", "savez_compressed", "savetxt", "savefig", "dump", "imread", "imsave",
     "get_sample_data", "download", "urlopen", "urlretrieve", "DataSource", "rc_file", "get_data_home",
+    # banned stdlib modules reached as attributes of allowed packages (matplotlib.shutil, ...)
+    "shutil", "pathlib", "tempfile", "pickle", "cPickle", "socket", "linecache", "glob", "urllib",
+    "http", "requests", "signal", "mmap", "zipfile", "tarfile", "fcntl", "multiprocessing",
+    # helpers that open a file given only a path string
+    "formatwarning", "showwarning", "warn_explicit", "getlines", "getline", "checkcache", "lazycache",
 }
 BANNED_ATTR_PATTERN = re.compile(
     r"^(fetch_.*|read_.*|to_(csv|pickle|parquet|excel|json|hdf|sql|feather|clipboard|stata|orc)|"
@@ -121,6 +129,9 @@ def check_security(cells: list[tuple[int, str]], extra_modules: set[str] | None 
         except SyntaxError as e:
             found.append(f"cell {idx}: syntax error line {e.lineno}: {e.msg}")
             continue
+        except Exception as e:  # RecursionError, MemoryError, ValueError: fail closed, never open
+            found.append(f"cell {idx}: could not be analysed ({type(e).__name__}); simplify it")
+            continue
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for a in node.names:
@@ -133,6 +144,8 @@ def check_security(cells: list[tuple[int, str]], extra_modules: set[str] | None 
                 for a in node.names:
                     if a.name == "*":
                         found.append(f"cell {idx}: star import (name what you import)")
+                    elif a.name.startswith("_"):
+                        found.append(f"cell {idx}: imports private name {a.name!r}")
                     else:
                         _check_attr(a.name, idx, found, how="imports")
             elif isinstance(node, ast.Name):
@@ -140,6 +153,11 @@ def check_security(cells: list[tuple[int, str]], extra_modules: set[str] | None 
                     found.append(f"cell {idx}: uses {node.id}")
             elif isinstance(node, ast.Attribute):
                 _check_attr(node.attr, idx, found, how="uses")
+                # private names such as collections._sys are aliases of banned modules.
+                # self._x and cls._x are the notebook's own classes and stay allowed.
+                if node.attr.startswith("_") and not node.attr.startswith("__") and not (
+                        isinstance(node.value, ast.Name) and node.value.id in ("self", "cls")):
+                    found.append(f"cell {idx}: uses private attribute '{node.attr}' of another object")
             elif isinstance(node, ast.keyword) and node.arg == "download":
                 found.append(f"cell {idx}: passes download=")
     return sorted(set(found))

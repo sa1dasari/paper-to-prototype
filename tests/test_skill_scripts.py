@@ -103,6 +103,15 @@ MUST_BLOCK = {
     "pip magic": "%pip install requests",
     "run magic": "%run other.py",
     "relative import": "from . import x",
+    "private module alias": "import collections\ncollections._sys.modules",
+    "private name import": "from collections import _sys",
+    "private attr of module": "import numpy as np\nnp._globals",
+    "banned module as attribute": "import matplotlib\nmatplotlib.shutil.rmtree('x')",
+    "pathlib as attribute": "import numpy as np\nnp.testing.extbuild.pathlib.Path('/etc/hostname').read_text()",
+    "pickle as attribute": "import pandas as pd\npd.core.generic.pickle.loads(b'')",
+    "warnings.formatwarning": "import warnings\nwarnings.formatwarning('m', UserWarning, '/etc/hostname', 1, None)",
+    "warnings.showwarning": "import warnings\nwarnings.showwarning('m', UserWarning, 'f', 1)",
+    "unanalysable huge expression": "x = " + "1+" * 200000 + "1",
     "syntax error": "def f(:\n  pass",
 }
 
@@ -126,6 +135,9 @@ MUST_PASS = {
     "pca/tsne": "from sklearn.decomposition import PCA\nfrom sklearn.manifold import TSNE\nPCA(2)",
     "default_rng": "import numpy as np\nrng = np.random.default_rng(0)\nrng.normal(size=3)",
     "subplots": "import matplotlib.pyplot as plt\nfig, ax = plt.subplots(1, 2)\nax[0].set_xlabel('x')\nplt.show()",
+    "self private attrs": "class A:\n    def __init__(self):\n        self._items = []\n"
+                          "    def add(self, x):\n        self._items.append(x)\n        return self._items",
+    "warnings filter": "import warnings\nwarnings.filterwarnings('ignore')\nwarnings.warn('x')",
     "re and statistics": "import re, statistics\nre.compile('a')\nstatistics.mean([1, 2])",
 }
 

@@ -58,7 +58,11 @@ reproduction instead of tuning until the effect appears, and it treats the paper
 untrusted input. A static check blocks generated notebooks that start processes, open
 sockets, read files or read environment variables, only known math and plotting modules can
 be imported, and the notebook's kernel gets a short allow-list of environment variables.
-That is a safety net, not a sandbox, so use a container if you run papers you do not trust.
+
+**This is a guardrail, not a sandbox.** It catches accidents and the common injected snippet.
+It does not stop a determined attacker, and a notebook runs as you, so it can read your files
+and the environment of your other processes. If you run papers from sources you do not trust,
+do it inside a container or VM that holds no real secrets.
 
 The helper scripts are `read_pdf.py`, `build_notebook.py`, `lint.py` and `run_notebook.py`.
 They use only the packages above and never call an API. Regression tests for them,
