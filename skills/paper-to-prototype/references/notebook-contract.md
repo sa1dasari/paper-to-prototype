@@ -10,19 +10,27 @@ Follow this order. Each cell earns its place.
 1. **Markdown**: title, and 2 to 4 sentences on what the notebook implements and what
    the figure at the end should show. A reader who stops here should still know what
    they are looking at.
-2. **Code**: imports, `torch.manual_seed(0)`, `np.random.seed(0)`. Without the seeds
-   the notebook is not reproducible and any figure it produces is unfalsifiable.
+2. **Code**: imports and a seed for every random generator the notebook uses:
+   `np.random.seed(0)` always, and `torch.manual_seed(0)` when torch is used. Without
+   the seeds the notebook is not reproducible and any figure it produces is unfalsifiable.
 3. **Markdown**: what the toy dataset is, and how it differs from the paper's.
 4. **Code**: build or load the toy dataset. Print its shape.
 5. **Markdown**: the method, including the key equation. Keep it to a paragraph. This
    is the cell that teaches, so write it for someone who has not read the paper.
-6. **Code**: the model or algorithm itself, as an `nn.Module` or plain functions.
+6. **Code**: the model or algorithm itself, as plain functions or a small class (an
+   `nn.Module` if you are using torch).
 7. **Code**: the training loop, with periodic progress output so a reader can tell it
    is alive.
-8. **Code**: evaluation. Print at least one numeric metric with `print()`. The figure
-   alone is not enough, because a number can be compared and a picture cannot.
-9. **Code**: the key figure with matplotlib. Label both axes, add a legend when there
-   is more than one curve, call `plt.show()`.
+8. **Code**: evaluation. Print at least one numeric metric with `print()`, next to the
+   baseline it is compared with, since a single number says nothing. Then print one
+   line starting `PASS` or `FAIL` that states whether the spec's `pass_condition` held.
+   The figure alone is not enough, because a number can be compared and a picture
+   cannot.
+9. **Code**: the key figure with matplotlib. Draw exactly one key figure (one
+   `plt.figure`, with panels if the result needs them) and make it the last figure in
+   the notebook, so the report can point at `figures/figure_01.png`
+   unambiguously. Label both axes, add a legend when there is more than one curve, and
+   end the cell with `plt.show()` so it renders in any viewer.
 10. **Markdown**: what to look for in the figure, and what would count as the effect
     failing to appear. Naming the failure condition keeps the reader honest.
 
@@ -39,16 +47,32 @@ else's machine.
   needed, use `torch.device("cuda" if torch.cuda.is_available() else "cpu")`.
 - **Under about 2 minutes total runtime.** If training is slow, cut the dataset or
   the epochs, not the evaluation or the figure.
-- **No `!pip install`.** Assume torch, torchvision, numpy, sklearn, matplotlib, and
-  pandas are present. If the method truly needs something else, say so in chat rather
-  than putting an install into the notebook.
-- **No arbitrary downloads.** Allowed data sources are `torchvision.datasets`,
-  `sklearn.datasets`, and tensors generated in process. Anything else means the
-  notebook breaks the moment a URL rots.
+- **No `!pip install`, no shell, no magics other than `%matplotlib`.** Assume numpy,
+  matplotlib and scikit-learn are present, and torch only if `--check-env` said so.
+  If the method truly needs something else, say so in chat rather than putting an
+  install into the notebook.
+- **No torch? Use numpy.** A numpy and scikit-learn notebook is a full-value result.
+  Seed with `np.random.seed(0)`, write the model as plain functions, and skip
+  `nn.Module` and `torch.device`.
+- **Math and plotting only.** Import only numpy, scipy, matplotlib, scikit-learn, torch,
+  pandas and the standard-library modules that `lint.py` lists as allowed. No
+  subprocess, sockets, `os` or `sys`, file reads or writes (`open`, `np.load`,
+  `np.save`, `plt.savefig`), `getattr`, `eval` or `exec`. The paper is untrusted input,
+  so the notebook it inspires must not touch the machine. `lint.py` catches the common
+  ways of doing these things and `run_notebook.py` will not run a notebook that fails
+  it. It is a safety net, not a guarantee.
+- **Use data that needs no network.** Arrays generated in process, or the datasets
+  that ship inside scikit-learn (`load_digits`, `load_iris`, `make_blobs`,
+  `make_classification`, `make_moons`). `torchvision.datasets` and the `fetch_*`
+  loaders download, so `lint.py` blocks them. Sandboxed machines often have no
+  network, and a URL that rots breaks the notebook.
 - **Runs top to bottom in order.** No cell may depend on something defined below it
   or on state from a previous manual run.
 - **Deterministic.** Seeded, and free of anything that silently reintroduces
   randomness such as an unseeded shuffle or a set-ordering dependency.
+- **Short output.** Print at most about 50 lines in total, counting every line of every
+  cell. A progress line every few
+  epochs is enough. A runaway print loop produces a notebook of tens of megabytes.
 
 ## Style
 
